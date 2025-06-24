@@ -57,8 +57,8 @@ jobs:
       - name: Install Docker Compose
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker-compose-plugin
-          docker compose version
+          sudo apt-get install -y docker-compose
+          docker-compose --version
       - name: Start Docker Compose services for testing
         run: |
           cp .env .env.test
