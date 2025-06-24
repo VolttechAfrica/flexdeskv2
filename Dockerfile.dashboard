@@ -1,0 +1,23 @@
+FROM alpine:latest
+
+# Install required packages
+RUN apk add --no-cache curl bash jq
+
+# Create app directory
+WORKDIR /app
+
+# Copy the dashboard files
+COPY dashboard.json ./
+COPY publish-dashboard.sh ./
+
+# Make the script executable
+RUN chmod +x ./publish-dashboard.sh
+
+# Add debug output
+RUN echo "Current directory contents:" && ls -la
+
+# The environment variables will be passed from docker-compose
+CMD ["/bin/bash", "-c", "echo 'Checking environment variables...' && \
+    echo 'DD_API_KEY exists: '${DD_API_KEY:+yes} && \
+    echo 'DD_APP_KEY exists: '${DD_APP_KEY:+yes} && \
+    ./publish-dashboard.sh"] 

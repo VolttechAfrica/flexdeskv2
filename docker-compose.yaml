@@ -1,0 +1,138 @@
+services:
+  app:
+    build:
+      context: .
+      target: development
+    image: volttechafrica/flexdeskbackend:latest
+    container_name: flexdesk-backend
+    restart: unless-stopped
+    environment:
+      - NODE_NO_WARNINGS=${NODE_NO_WARNINGS}
+      - PORT=${PORT}
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+      - ENV=${ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_USER=${REDIS_USER}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - DATADOG_API_KEY=${DATADOG_API_KEY}
+      - DATADOG_APP_KEY=${DATADOG_APP_KEY}
+      - DD_AGENT_HOST=datadog-agent
+      - DD_AGENT_PORT=${DD_AGENT_PORT}
+    env_file:
+      - .env
+    depends_on:
+      datadog-agent:
+        condition: service_healthy
+    networks:
+      - flexdesk-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    ports:
+      - "8000:8000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  datadog-agent:
+    image: datadog/agent:latest
+    container_name: datadog-agent
+    restart: unless-stopped
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=datadoghq.eu
+      - DD_DOGSTATSD_PORT=8125
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_SYSTEM_PROBE_ENABLED=true
+      - DD_APM_ENABLED=true
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_METRICS_ENABLED=true
+      - DD_SYSTEM_PROBE_NETWORK_ENABLED=true
+      - DD_SYSTEM_PROBE_PROCESS_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_AGENT_HOST=datadog-agent
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    ports:
+      - "8125:8125/udp" # DogStatsD
+      - "8126:8126"     # APM
+    networks:
+      - flexdesk-network
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+      - NET_ADMIN
+      - NET_BROADCAST
+      - NET_RAW
+      - IPC_LOCK
+      - CHOWN
+      - SYS_RESOURCE
+    security_opt:
+      - apparmor:unconfined
+    healthcheck:
+      test: ["CMD", "agent", "health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  dashboard-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_APP_KEY=${DATADOG_APP_KEY}
+    depends_on:
+      - app
+    networks:
+      - flexdesk-network
+    restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://api.datadoghq.eu/api/v1/validate"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+networks:
+  flexdesk-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+

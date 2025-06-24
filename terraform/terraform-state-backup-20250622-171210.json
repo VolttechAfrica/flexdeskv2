@@ -1,0 +1,2323 @@
+{
+  "version": 4,
+  "terraform_version": "1.12.2",
+  "serial": 46,
+  "lineage": "e50ea965-678c-5eac-c494-31c9f806105b",
+  "outputs": {
+    "alb_dns_name": {
+      "value": "flexdesk-alb-1810242602.af-south-1.elb.amazonaws.com",
+      "type": "string"
+    },
+    "app_sg_id": {
+      "value": "sg-0fdd0462eb0fa863c",
+      "type": "string"
+    },
+    "domain_name": {
+      "value": "flexdesk.sch.ng",
+      "type": "string"
+    },
+    "instance_id": {
+      "value": "i-0d18e34d7abf714c8",
+      "type": "string"
+    },
+    "instance_public_ip": {
+      "value": "13.244.157.115",
+      "type": "string"
+    },
+    "name_servers": {
+      "value": [
+        "ns-1303.awsdns-34.org",
+        "ns-186.awsdns-23.com",
+        "ns-1868.awsdns-41.co.uk",
+        "ns-932.awsdns-52.net"
+      ],
+      "type": [
+        "list",
+        "string"
+      ]
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_ami",
+      "name": "ubuntu",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "allow_unsafe_filter": null,
+            "architecture": "x86_64",
+            "arn": "arn:aws:ec2:af-south-1::image/ami-0f36f910748122df7",
+            "block_device_mappings": [
+              {
+                "device_name": "/dev/sda1",
+                "ebs": {
+                  "delete_on_termination": "true",
+                  "encrypted": "false",
+                  "iops": "0",
+                  "snapshot_id": "snap-037393c50673a45fb",
+                  "throughput": "0",
+                  "volume_initialization_rate": "0",
+                  "volume_size": "8",
+                  "volume_type": "gp2"
+                },
+                "no_device": "",
+                "virtual_name": ""
+              },
+              {
+                "device_name": "/dev/sdb",
+                "ebs": {},
+                "no_device": "",
+                "virtual_name": "ephemeral0"
+              },
+              {
+                "device_name": "/dev/sdc",
+                "ebs": {},
+                "no_device": "",
+                "virtual_name": "ephemeral1"
+              }
+            ],
+            "boot_mode": "legacy-bios",
+            "creation_date": "2025-06-03T15:17:02.000Z",
+            "deprecation_time": "2027-06-03T15:17:02.000Z",
+            "description": "Canonical, Ubuntu, 20.04, amd64 focal image",
+            "ena_support": true,
+            "executable_users": null,
+            "filter": [
+              {
+                "name": "name",
+                "values": [
+                  "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"
+                ]
+              },
+              {
+                "name": "virtualization-type",
+                "values": [
+                  "hvm"
+                ]
+              }
+            ],
+            "hypervisor": "xen",
+            "id": "ami-0f36f910748122df7",
+            "image_id": "ami-0f36f910748122df7",
+            "image_location": "amazon/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20250603",
+            "image_owner_alias": "amazon",
+            "image_type": "machine",
+            "imds_support": "",
+            "include_deprecated": false,
+            "kernel_id": "",
+            "last_launched_time": "",
+            "most_recent": true,
+            "name": "ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20250603",
+            "name_regex": null,
+            "owner_id": "099720109477",
+            "owners": [
+              "099720109477"
+            ],
+            "platform": "",
+            "platform_details": "Linux/UNIX",
+            "product_codes": [],
+            "public": true,
+            "ramdisk_id": "",
+            "region": "af-south-1",
+            "root_device_name": "/dev/sda1",
+            "root_device_type": "ebs",
+            "root_snapshot_id": "snap-037393c50673a45fb",
+            "sriov_net_support": "simple",
+            "state": "available",
+            "state_reason": {
+              "code": "UNSET",
+              "message": "UNSET"
+            },
+            "tags": {},
+            "timeouts": null,
+            "tpm_support": "",
+            "uefi_data": null,
+            "usage_operation": "RunInstances",
+            "virtualization_type": "hvm"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_instance_profile",
+      "name": "ec2_ssm_instance_profile",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::216989130949:instance-profile/flexdesk-ec2-ssm-instance-profile",
+            "create_date": "2025-06-22T13:11:26Z",
+            "id": "flexdesk-ec2-ssm-instance-profile",
+            "name": "flexdesk-ec2-ssm-instance-profile",
+            "name_prefix": "",
+            "path": "/",
+            "role": "flexdesk-ec2-ssm-role",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AIPATFBMPMDC7P3NDPSIF"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ec2_ssm_role"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "ec2_ssm_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::216989130949:role/flexdesk-ec2-ssm-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-06-22T13:11:25Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "flexdesk-ec2-ssm-role",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+            ],
+            "max_session_duration": 3600,
+            "name": "flexdesk-ec2-ssm-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROATFBMPMDCVYKODCF7Z"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "account_id": "216989130949",
+            "name": "flexdesk-ec2-ssm-role"
+          },
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "ec2_ssm_policy_attachment",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "flexdesk-ec2-ssm-role-20250622131126096300000001",
+            "policy_arn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+            "role": "flexdesk-ec2-ssm-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.ec2_ssm_role"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.alb",
+      "mode": "managed",
+      "type": "aws_lb",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "access_logs": [
+              {
+                "bucket": "",
+                "enabled": false,
+                "prefix": ""
+              }
+            ],
+            "arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:loadbalancer/app/flexdesk-alb/a96bd6de5f614e43",
+            "arn_suffix": "app/flexdesk-alb/a96bd6de5f614e43",
+            "client_keep_alive": 3600,
+            "connection_logs": [
+              {
+                "bucket": "",
+                "enabled": false,
+                "prefix": ""
+              }
+            ],
+            "customer_owned_ipv4_pool": "",
+            "desync_mitigation_mode": "defensive",
+            "dns_name": "flexdesk-alb-1810242602.af-south-1.elb.amazonaws.com",
+            "dns_record_client_routing_policy": null,
+            "drop_invalid_header_fields": false,
+            "enable_cross_zone_load_balancing": true,
+            "enable_deletion_protection": false,
+            "enable_http2": true,
+            "enable_tls_version_and_cipher_suite_headers": false,
+            "enable_waf_fail_open": false,
+            "enable_xff_client_port": false,
+            "enable_zonal_shift": false,
+            "enforce_security_group_inbound_rules_on_private_link_traffic": "",
+            "id": "arn:aws:elasticloadbalancing:af-south-1:216989130949:loadbalancer/app/flexdesk-alb/a96bd6de5f614e43",
+            "idle_timeout": 60,
+            "internal": false,
+            "ip_address_type": "ipv4",
+            "ipam_pools": [],
+            "load_balancer_type": "application",
+            "minimum_load_balancer_capacity": [],
+            "name": "flexdesk-alb",
+            "name_prefix": "",
+            "preserve_host_header": false,
+            "region": "af-south-1",
+            "security_groups": [
+              "sg-050e33310a31f98e5"
+            ],
+            "subnet_mapping": [
+              {
+                "allocation_id": "",
+                "ipv6_address": "",
+                "outpost_id": "",
+                "private_ipv4_address": "",
+                "subnet_id": "subnet-03553ca9264f177be"
+              },
+              {
+                "allocation_id": "",
+                "ipv6_address": "",
+                "outpost_id": "",
+                "private_ipv4_address": "",
+                "subnet_id": "subnet-0bd29e75f3750b3aa"
+              }
+            ],
+            "subnets": [
+              "subnet-03553ca9264f177be",
+              "subnet-0bd29e75f3750b3aa"
+            ],
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad",
+            "xff_header_processing_mode": "append",
+            "zone_id": "Z268VQBMOI5EKX"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "identity": {
+            "arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:loadbalancer/app/flexdesk-alb/a96bd6de5f614e43"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwLCJ1cGRhdGUiOjYwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.aws_security_group.alb_sg",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.alb",
+      "mode": "managed",
+      "type": "aws_lb_listener",
+      "name": "http",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "alpn_policy": null,
+            "arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:listener/app/flexdesk-alb/a96bd6de5f614e43/c92a16908cde664e",
+            "certificate_arn": null,
+            "default_action": [
+              {
+                "authenticate_cognito": [],
+                "authenticate_oidc": [],
+                "fixed_response": [],
+                "forward": [],
+                "order": 1,
+                "redirect": [],
+                "target_group_arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:targetgroup/flexdesk-tg/0e3d89801f368c2b",
+                "type": "forward"
+              }
+            ],
+            "id": "arn:aws:elasticloadbalancing:af-south-1:216989130949:listener/app/flexdesk-alb/a96bd6de5f614e43/c92a16908cde664e",
+            "load_balancer_arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:loadbalancer/app/flexdesk-alb/a96bd6de5f614e43",
+            "mutual_authentication": [],
+            "port": 80,
+            "protocol": "HTTP",
+            "region": "af-south-1",
+            "routing_http_request_x_amzn_mtls_clientcert_header_name": null,
+            "routing_http_request_x_amzn_mtls_clientcert_issuer_header_name": null,
+            "routing_http_request_x_amzn_mtls_clientcert_leaf_header_name": null,
+            "routing_http_request_x_amzn_mtls_clientcert_serial_number_header_name": null,
+            "routing_http_request_x_amzn_mtls_clientcert_subject_header_name": null,
+            "routing_http_request_x_amzn_mtls_clientcert_validity_header_name": null,
+            "routing_http_request_x_amzn_tls_cipher_suite_header_name": null,
+            "routing_http_request_x_amzn_tls_version_header_name": null,
+            "routing_http_response_access_control_allow_credentials_header_value": "",
+            "routing_http_response_access_control_allow_headers_header_value": "",
+            "routing_http_response_access_control_allow_methods_header_value": "",
+            "routing_http_response_access_control_allow_origin_header_value": "",
+            "routing_http_response_access_control_expose_headers_header_value": "",
+            "routing_http_response_access_control_max_age_header_value": "",
+            "routing_http_response_content_security_policy_header_value": "",
+            "routing_http_response_server_enabled": true,
+            "routing_http_response_strict_transport_security_header_value": "",
+            "routing_http_response_x_content_type_options_header_value": "",
+            "routing_http_response_x_frame_options_header_value": "",
+            "ssl_policy": "",
+            "tags": {},
+            "tags_all": {},
+            "tcp_idle_timeout_seconds": null,
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsInVwZGF0ZSI6MzAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "module.alb.aws_lb.this",
+            "module.alb.aws_lb_target_group.this",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.alb",
+      "mode": "managed",
+      "type": "aws_lb_target_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:targetgroup/flexdesk-tg/0e3d89801f368c2b",
+            "arn_suffix": "targetgroup/flexdesk-tg/0e3d89801f368c2b",
+            "connection_termination": null,
+            "deregistration_delay": "300",
+            "health_check": [
+              {
+                "enabled": true,
+                "healthy_threshold": 2,
+                "interval": 30,
+                "matcher": "200-399",
+                "path": "/",
+                "port": "traffic-port",
+                "protocol": "HTTP",
+                "timeout": 5,
+                "unhealthy_threshold": 2
+              }
+            ],
+            "id": "arn:aws:elasticloadbalancing:af-south-1:216989130949:targetgroup/flexdesk-tg/0e3d89801f368c2b",
+            "ip_address_type": "ipv4",
+            "lambda_multi_value_headers_enabled": false,
+            "load_balancer_arns": [
+              "arn:aws:elasticloadbalancing:af-south-1:216989130949:loadbalancer/app/flexdesk-alb/a96bd6de5f614e43"
+            ],
+            "load_balancing_algorithm_type": "round_robin",
+            "load_balancing_anomaly_mitigation": "off",
+            "load_balancing_cross_zone_enabled": "use_load_balancer_configuration",
+            "name": "flexdesk-tg",
+            "name_prefix": "",
+            "port": 80,
+            "preserve_client_ip": null,
+            "protocol": "HTTP",
+            "protocol_version": "HTTP1",
+            "proxy_protocol_v2": false,
+            "region": "af-south-1",
+            "slow_start": 0,
+            "stickiness": [
+              {
+                "cookie_duration": 86400,
+                "cookie_name": "",
+                "enabled": false,
+                "type": "lb_cookie"
+              }
+            ],
+            "tags": {},
+            "tags_all": {},
+            "target_failover": [
+              {
+                "on_deregistration": null,
+                "on_unhealthy": null
+              }
+            ],
+            "target_group_health": [
+              {
+                "dns_failover": [
+                  {
+                    "minimum_healthy_targets_count": "1",
+                    "minimum_healthy_targets_percentage": "off"
+                  }
+                ],
+                "unhealthy_state_routing": [
+                  {
+                    "minimum_healthy_targets_count": 1,
+                    "minimum_healthy_targets_percentage": "off"
+                  }
+                ]
+              }
+            ],
+            "target_health_state": [
+              {
+                "enable_unhealthy_connection_termination": null,
+                "unhealthy_draining_interval": null
+              }
+            ],
+            "target_type": "instance",
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.alb",
+      "mode": "managed",
+      "type": "aws_lb_target_group_attachment",
+      "name": "instance",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "availability_zone": null,
+            "id": "arn:aws:elasticloadbalancing:af-south-1:216989130949:targetgroup/flexdesk-tg/0e3d89801f368c2b-20250622142314802500000002",
+            "port": 80,
+            "region": "af-south-1",
+            "target_group_arn": "arn:aws:elasticloadbalancing:af-south-1:216989130949:targetgroup/flexdesk-tg/0e3d89801f368c2b",
+            "target_id": "i-0d18e34d7abf714c8"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_instance_profile.ec2_ssm_instance_profile",
+            "aws_iam_role.ec2_ssm_role",
+            "data.aws_ami.ubuntu",
+            "module.alb.aws_lb_target_group.this",
+            "module.compute.aws_instance.flexdesk-backend",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.aws_security_group.app",
+            "module.network.module.vpc.aws_cloudwatch_log_group.flow_log",
+            "module.network.module.vpc.aws_customer_gateway.this",
+            "module.network.module.vpc.aws_db_subnet_group.database",
+            "module.network.module.vpc.aws_default_network_acl.this",
+            "module.network.module.vpc.aws_default_route_table.default",
+            "module.network.module.vpc.aws_default_security_group.this",
+            "module.network.module.vpc.aws_default_vpc.this",
+            "module.network.module.vpc.aws_egress_only_internet_gateway.this",
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_elasticache_subnet_group.elasticache",
+            "module.network.module.vpc.aws_flow_log.this",
+            "module.network.module.vpc.aws_iam_policy.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role_policy_attachment.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_network_acl.database",
+            "module.network.module.vpc.aws_network_acl.elasticache",
+            "module.network.module.vpc.aws_network_acl.intra",
+            "module.network.module.vpc.aws_network_acl.outpost",
+            "module.network.module.vpc.aws_network_acl.private",
+            "module.network.module.vpc.aws_network_acl.public",
+            "module.network.module.vpc.aws_network_acl.redshift",
+            "module.network.module.vpc.aws_network_acl_rule.database_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.database_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_outbound",
+            "module.network.module.vpc.aws_redshift_subnet_group.redshift",
+            "module.network.module.vpc.aws_route.database_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.database_internet_gateway",
+            "module.network.module.vpc.aws_route.database_ipv6_egress",
+            "module.network.module.vpc.aws_route.database_nat_gateway",
+            "module.network.module.vpc.aws_route.private_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.private_ipv6_egress",
+            "module.network.module.vpc.aws_route.private_nat_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway_ipv6",
+            "module.network.module.vpc.aws_route_table.database",
+            "module.network.module.vpc.aws_route_table.elasticache",
+            "module.network.module.vpc.aws_route_table.intra",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_route_table.redshift",
+            "module.network.module.vpc.aws_route_table_association.database",
+            "module.network.module.vpc.aws_route_table_association.elasticache",
+            "module.network.module.vpc.aws_route_table_association.intra",
+            "module.network.module.vpc.aws_route_table_association.outpost",
+            "module.network.module.vpc.aws_route_table_association.private",
+            "module.network.module.vpc.aws_route_table_association.public",
+            "module.network.module.vpc.aws_route_table_association.redshift",
+            "module.network.module.vpc.aws_route_table_association.redshift_public",
+            "module.network.module.vpc.aws_subnet.database",
+            "module.network.module.vpc.aws_subnet.elasticache",
+            "module.network.module.vpc.aws_subnet.intra",
+            "module.network.module.vpc.aws_subnet.outpost",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_subnet.redshift",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_exclusion.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options_association.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this",
+            "module.network.module.vpc.aws_vpn_gateway.this",
+            "module.network.module.vpc.aws_vpn_gateway_attachment.this",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.intra",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.private",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.public",
+            "module.network.module.vpc.data.aws_caller_identity.current",
+            "module.network.module.vpc.data.aws_iam_policy_document.flow_log_cloudwatch_assume_role",
+            "module.network.module.vpc.data.aws_iam_policy_document.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.data.aws_partition.current",
+            "module.network.module.vpc.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.compute",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "flexdesk-backend",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 2,
+          "attributes": {
+            "ami": "ami-0f36f910748122df7",
+            "arn": "arn:aws:ec2:af-south-1:216989130949:instance/i-0d18e34d7abf714c8",
+            "associate_public_ip_address": true,
+            "availability_zone": "af-south-1a",
+            "capacity_reservation_specification": [
+              {
+                "capacity_reservation_preference": "open",
+                "capacity_reservation_target": []
+              }
+            ],
+            "cpu_options": [
+              {
+                "amd_sev_snp": "",
+                "core_count": 1,
+                "threads_per_core": 2
+              }
+            ],
+            "credit_specification": [
+              {
+                "cpu_credits": "unlimited"
+              }
+            ],
+            "disable_api_stop": false,
+            "disable_api_termination": false,
+            "ebs_block_device": [],
+            "ebs_optimized": false,
+            "enable_primary_ipv6": null,
+            "enclave_options": [
+              {
+                "enabled": false
+              }
+            ],
+            "ephemeral_block_device": [],
+            "get_password_data": false,
+            "hibernation": false,
+            "host_id": "",
+            "host_resource_group_arn": null,
+            "iam_instance_profile": "flexdesk-ec2-ssm-instance-profile",
+            "id": "i-0d18e34d7abf714c8",
+            "instance_initiated_shutdown_behavior": "stop",
+            "instance_lifecycle": "",
+            "instance_market_options": [],
+            "instance_state": "running",
+            "instance_type": "t3.micro",
+            "ipv6_address_count": 0,
+            "ipv6_addresses": [],
+            "key_name": "",
+            "launch_template": [],
+            "maintenance_options": [
+              {
+                "auto_recovery": "default"
+              }
+            ],
+            "metadata_options": [
+              {
+                "http_endpoint": "enabled",
+                "http_protocol_ipv6": "disabled",
+                "http_put_response_hop_limit": 1,
+                "http_tokens": "optional",
+                "instance_metadata_tags": "disabled"
+              }
+            ],
+            "monitoring": false,
+            "network_interface": [],
+            "outpost_arn": "",
+            "password_data": "",
+            "placement_group": "",
+            "placement_partition_number": 0,
+            "primary_network_interface_id": "eni-03ecb9e653a4b5b51",
+            "private_dns": "ip-10-0-101-213.af-south-1.compute.internal",
+            "private_dns_name_options": [
+              {
+                "enable_resource_name_dns_a_record": false,
+                "enable_resource_name_dns_aaaa_record": false,
+                "hostname_type": "ip-name"
+              }
+            ],
+            "private_ip": "10.0.101.213",
+            "public_dns": "ec2-13-244-157-115.af-south-1.compute.amazonaws.com",
+            "public_ip": "13.244.157.115",
+            "region": "af-south-1",
+            "root_block_device": [
+              {
+                "delete_on_termination": true,
+                "device_name": "/dev/sda1",
+                "encrypted": false,
+                "iops": 100,
+                "kms_key_id": "",
+                "tags": {},
+                "tags_all": {},
+                "throughput": 0,
+                "volume_id": "vol-0c3415807c9792802",
+                "volume_size": 8,
+                "volume_type": "gp2"
+              }
+            ],
+            "secondary_private_ips": [],
+            "security_groups": [],
+            "source_dest_check": true,
+            "spot_instance_request_id": "",
+            "subnet_id": "subnet-0bd29e75f3750b3aa",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-backend-instance",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-backend-instance",
+              "Project": "flexdesk"
+            },
+            "tenancy": "default",
+            "timeouts": null,
+            "user_data": "#!/bin/bash\napt update -y\n              \n# Install Docker\napt install -y docker.io\nsystemctl start docker\nsystemctl enable docker\n              \n# Install Docker Compose\ncurl -L \"https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)\" -o /usr/local/bin/docker-compose\nchmod +x /usr/local/bin/docker-compose\n              \n# Install git\napt install -y git\n              \n# Install nginx\napt install -y nginx\n              \n# Start nginx\nsystemctl start nginx\nsystemctl enable nginx\n              \n# Configure nginx to serve a simple response\ncat \u003e /etc/nginx/sites-available/flexdesk \u003c\u003c 'NGINX_CONF'\nserver {\n  listen 80;\n  server_name flexdesk.sch.ng;\n                \n  location / {\n    return 200 \"FlexDesk Backend is running!\";\n    add_header Content-Type text/plain;\n  }\n}\nNGINX_CONF\n              \n# Enable the site\nln -sf /etc/nginx/sites-available/flexdesk /etc/nginx/sites-enabled/\nrm -f /etc/nginx/sites-enabled/default\n              \n# Test nginx config and restart\nnginx -t \u0026\u0026 systemctl restart nginx\n              \n",
+            "user_data_base64": null,
+            "user_data_replace_on_change": false,
+            "volume_tags": null,
+            "vpc_security_group_ids": [
+              "sg-0fdd0462eb0fa863c"
+            ]
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMCwicmVhZCI6OTAwMDAwMDAwMDAwLCJ1cGRhdGUiOjYwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMiJ9",
+          "dependencies": [
+            "aws_iam_instance_profile.ec2_ssm_instance_profile",
+            "aws_iam_role.ec2_ssm_role",
+            "data.aws_ami.ubuntu",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.aws_security_group.app",
+            "module.network.module.vpc.aws_cloudwatch_log_group.flow_log",
+            "module.network.module.vpc.aws_customer_gateway.this",
+            "module.network.module.vpc.aws_db_subnet_group.database",
+            "module.network.module.vpc.aws_default_network_acl.this",
+            "module.network.module.vpc.aws_default_route_table.default",
+            "module.network.module.vpc.aws_default_security_group.this",
+            "module.network.module.vpc.aws_default_vpc.this",
+            "module.network.module.vpc.aws_egress_only_internet_gateway.this",
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_elasticache_subnet_group.elasticache",
+            "module.network.module.vpc.aws_flow_log.this",
+            "module.network.module.vpc.aws_iam_policy.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role_policy_attachment.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_network_acl.database",
+            "module.network.module.vpc.aws_network_acl.elasticache",
+            "module.network.module.vpc.aws_network_acl.intra",
+            "module.network.module.vpc.aws_network_acl.outpost",
+            "module.network.module.vpc.aws_network_acl.private",
+            "module.network.module.vpc.aws_network_acl.public",
+            "module.network.module.vpc.aws_network_acl.redshift",
+            "module.network.module.vpc.aws_network_acl_rule.database_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.database_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_outbound",
+            "module.network.module.vpc.aws_redshift_subnet_group.redshift",
+            "module.network.module.vpc.aws_route.database_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.database_internet_gateway",
+            "module.network.module.vpc.aws_route.database_ipv6_egress",
+            "module.network.module.vpc.aws_route.database_nat_gateway",
+            "module.network.module.vpc.aws_route.private_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.private_ipv6_egress",
+            "module.network.module.vpc.aws_route.private_nat_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway_ipv6",
+            "module.network.module.vpc.aws_route_table.database",
+            "module.network.module.vpc.aws_route_table.elasticache",
+            "module.network.module.vpc.aws_route_table.intra",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_route_table.redshift",
+            "module.network.module.vpc.aws_route_table_association.database",
+            "module.network.module.vpc.aws_route_table_association.elasticache",
+            "module.network.module.vpc.aws_route_table_association.intra",
+            "module.network.module.vpc.aws_route_table_association.outpost",
+            "module.network.module.vpc.aws_route_table_association.private",
+            "module.network.module.vpc.aws_route_table_association.public",
+            "module.network.module.vpc.aws_route_table_association.redshift",
+            "module.network.module.vpc.aws_route_table_association.redshift_public",
+            "module.network.module.vpc.aws_subnet.database",
+            "module.network.module.vpc.aws_subnet.elasticache",
+            "module.network.module.vpc.aws_subnet.intra",
+            "module.network.module.vpc.aws_subnet.outpost",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_subnet.redshift",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_exclusion.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options_association.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this",
+            "module.network.module.vpc.aws_vpn_gateway.this",
+            "module.network.module.vpc.aws_vpn_gateway_attachment.this",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.intra",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.private",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.public",
+            "module.network.module.vpc.data.aws_caller_identity.current",
+            "module.network.module.vpc.data.aws_iam_policy_document.flow_log_cloudwatch_assume_role",
+            "module.network.module.vpc.data.aws_iam_policy_document.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.data.aws_partition.current",
+            "module.network.module.vpc.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.dns",
+      "mode": "managed",
+      "type": "aws_route53_record",
+      "name": "app",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 2,
+          "attributes": {
+            "alias": [
+              {
+                "evaluate_target_health": true,
+                "name": "flexdesk-alb-1810242602.af-south-1.elb.amazonaws.com",
+                "zone_id": "Z268VQBMOI5EKX"
+              }
+            ],
+            "allow_overwrite": null,
+            "cidr_routing_policy": [],
+            "failover_routing_policy": [],
+            "fqdn": "flexdesk.sch.ng",
+            "geolocation_routing_policy": [],
+            "geoproximity_routing_policy": [],
+            "health_check_id": "",
+            "id": "Z084024920JT9PE56J00D_flexdesk.sch.ng_A",
+            "latency_routing_policy": [],
+            "multivalue_answer_routing_policy": false,
+            "name": "flexdesk.sch.ng",
+            "records": [],
+            "set_identifier": "",
+            "timeouts": null,
+            "ttl": 0,
+            "type": "A",
+            "weighted_routing_policy": [],
+            "zone_id": "Z084024920JT9PE56J00D"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInVwZGF0ZSI6MTgwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMiJ9",
+          "dependencies": [
+            "aws_iam_instance_profile.ec2_ssm_instance_profile",
+            "aws_iam_role.ec2_ssm_role",
+            "data.aws_ami.ubuntu",
+            "module.alb.aws_lb.this",
+            "module.alb.aws_lb_listener.http",
+            "module.alb.aws_lb_target_group.this",
+            "module.alb.aws_lb_target_group_attachment.instance",
+            "module.compute.aws_instance.flexdesk-backend",
+            "module.dns.aws_route53_zone.main",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.aws_security_group.app",
+            "module.network.module.vpc.aws_cloudwatch_log_group.flow_log",
+            "module.network.module.vpc.aws_customer_gateway.this",
+            "module.network.module.vpc.aws_db_subnet_group.database",
+            "module.network.module.vpc.aws_default_network_acl.this",
+            "module.network.module.vpc.aws_default_route_table.default",
+            "module.network.module.vpc.aws_default_security_group.this",
+            "module.network.module.vpc.aws_default_vpc.this",
+            "module.network.module.vpc.aws_egress_only_internet_gateway.this",
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_elasticache_subnet_group.elasticache",
+            "module.network.module.vpc.aws_flow_log.this",
+            "module.network.module.vpc.aws_iam_policy.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role_policy_attachment.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_network_acl.database",
+            "module.network.module.vpc.aws_network_acl.elasticache",
+            "module.network.module.vpc.aws_network_acl.intra",
+            "module.network.module.vpc.aws_network_acl.outpost",
+            "module.network.module.vpc.aws_network_acl.private",
+            "module.network.module.vpc.aws_network_acl.public",
+            "module.network.module.vpc.aws_network_acl.redshift",
+            "module.network.module.vpc.aws_network_acl_rule.database_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.database_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_outbound",
+            "module.network.module.vpc.aws_redshift_subnet_group.redshift",
+            "module.network.module.vpc.aws_route.database_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.database_internet_gateway",
+            "module.network.module.vpc.aws_route.database_ipv6_egress",
+            "module.network.module.vpc.aws_route.database_nat_gateway",
+            "module.network.module.vpc.aws_route.private_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.private_ipv6_egress",
+            "module.network.module.vpc.aws_route.private_nat_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway_ipv6",
+            "module.network.module.vpc.aws_route_table.database",
+            "module.network.module.vpc.aws_route_table.elasticache",
+            "module.network.module.vpc.aws_route_table.intra",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_route_table.redshift",
+            "module.network.module.vpc.aws_route_table_association.database",
+            "module.network.module.vpc.aws_route_table_association.elasticache",
+            "module.network.module.vpc.aws_route_table_association.intra",
+            "module.network.module.vpc.aws_route_table_association.outpost",
+            "module.network.module.vpc.aws_route_table_association.private",
+            "module.network.module.vpc.aws_route_table_association.public",
+            "module.network.module.vpc.aws_route_table_association.redshift",
+            "module.network.module.vpc.aws_route_table_association.redshift_public",
+            "module.network.module.vpc.aws_subnet.database",
+            "module.network.module.vpc.aws_subnet.elasticache",
+            "module.network.module.vpc.aws_subnet.intra",
+            "module.network.module.vpc.aws_subnet.outpost",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_subnet.redshift",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_exclusion.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options_association.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this",
+            "module.network.module.vpc.aws_vpn_gateway.this",
+            "module.network.module.vpc.aws_vpn_gateway_attachment.this",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.intra",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.private",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.public",
+            "module.network.module.vpc.data.aws_caller_identity.current",
+            "module.network.module.vpc.data.aws_iam_policy_document.flow_log_cloudwatch_assume_role",
+            "module.network.module.vpc.data.aws_iam_policy_document.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.data.aws_partition.current",
+            "module.network.module.vpc.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.dns",
+      "mode": "managed",
+      "type": "aws_route53_record",
+      "name": "www",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 2,
+          "attributes": {
+            "alias": [],
+            "allow_overwrite": null,
+            "cidr_routing_policy": [],
+            "failover_routing_policy": [],
+            "fqdn": "www.flexdesk.sch.ng",
+            "geolocation_routing_policy": [],
+            "geoproximity_routing_policy": [],
+            "health_check_id": "",
+            "id": "Z084024920JT9PE56J00D_www.flexdesk.sch.ng_CNAME",
+            "latency_routing_policy": [],
+            "multivalue_answer_routing_policy": false,
+            "name": "www.flexdesk.sch.ng",
+            "records": [
+              "flexdesk.sch.ng"
+            ],
+            "set_identifier": "",
+            "timeouts": null,
+            "ttl": 300,
+            "type": "CNAME",
+            "weighted_routing_policy": [],
+            "zone_id": "Z084024920JT9PE56J00D"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInVwZGF0ZSI6MTgwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMiJ9",
+          "dependencies": [
+            "aws_iam_instance_profile.ec2_ssm_instance_profile",
+            "aws_iam_role.ec2_ssm_role",
+            "data.aws_ami.ubuntu",
+            "module.alb.aws_lb.this",
+            "module.alb.aws_lb_listener.http",
+            "module.alb.aws_lb_target_group.this",
+            "module.alb.aws_lb_target_group_attachment.instance",
+            "module.compute.aws_instance.flexdesk-backend",
+            "module.dns.aws_route53_zone.main",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.aws_security_group.app",
+            "module.network.module.vpc.aws_cloudwatch_log_group.flow_log",
+            "module.network.module.vpc.aws_customer_gateway.this",
+            "module.network.module.vpc.aws_db_subnet_group.database",
+            "module.network.module.vpc.aws_default_network_acl.this",
+            "module.network.module.vpc.aws_default_route_table.default",
+            "module.network.module.vpc.aws_default_security_group.this",
+            "module.network.module.vpc.aws_default_vpc.this",
+            "module.network.module.vpc.aws_egress_only_internet_gateway.this",
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_elasticache_subnet_group.elasticache",
+            "module.network.module.vpc.aws_flow_log.this",
+            "module.network.module.vpc.aws_iam_policy.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role_policy_attachment.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_network_acl.database",
+            "module.network.module.vpc.aws_network_acl.elasticache",
+            "module.network.module.vpc.aws_network_acl.intra",
+            "module.network.module.vpc.aws_network_acl.outpost",
+            "module.network.module.vpc.aws_network_acl.private",
+            "module.network.module.vpc.aws_network_acl.public",
+            "module.network.module.vpc.aws_network_acl.redshift",
+            "module.network.module.vpc.aws_network_acl_rule.database_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.database_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_outbound",
+            "module.network.module.vpc.aws_redshift_subnet_group.redshift",
+            "module.network.module.vpc.aws_route.database_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.database_internet_gateway",
+            "module.network.module.vpc.aws_route.database_ipv6_egress",
+            "module.network.module.vpc.aws_route.database_nat_gateway",
+            "module.network.module.vpc.aws_route.private_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.private_ipv6_egress",
+            "module.network.module.vpc.aws_route.private_nat_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway_ipv6",
+            "module.network.module.vpc.aws_route_table.database",
+            "module.network.module.vpc.aws_route_table.elasticache",
+            "module.network.module.vpc.aws_route_table.intra",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_route_table.redshift",
+            "module.network.module.vpc.aws_route_table_association.database",
+            "module.network.module.vpc.aws_route_table_association.elasticache",
+            "module.network.module.vpc.aws_route_table_association.intra",
+            "module.network.module.vpc.aws_route_table_association.outpost",
+            "module.network.module.vpc.aws_route_table_association.private",
+            "module.network.module.vpc.aws_route_table_association.public",
+            "module.network.module.vpc.aws_route_table_association.redshift",
+            "module.network.module.vpc.aws_route_table_association.redshift_public",
+            "module.network.module.vpc.aws_subnet.database",
+            "module.network.module.vpc.aws_subnet.elasticache",
+            "module.network.module.vpc.aws_subnet.intra",
+            "module.network.module.vpc.aws_subnet.outpost",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_subnet.redshift",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_exclusion.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options_association.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this",
+            "module.network.module.vpc.aws_vpn_gateway.this",
+            "module.network.module.vpc.aws_vpn_gateway_attachment.this",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.intra",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.private",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.public",
+            "module.network.module.vpc.data.aws_caller_identity.current",
+            "module.network.module.vpc.data.aws_iam_policy_document.flow_log_cloudwatch_assume_role",
+            "module.network.module.vpc.data.aws_iam_policy_document.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.data.aws_partition.current",
+            "module.network.module.vpc.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.dns",
+      "mode": "managed",
+      "type": "aws_route53_zone",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:route53:::hostedzone/Z084024920JT9PE56J00D",
+            "comment": "Managed by Terraform",
+            "delegation_set_id": "",
+            "force_destroy": false,
+            "id": "Z084024920JT9PE56J00D",
+            "name": "flexdesk.sch.ng",
+            "name_servers": [
+              "ns-1303.awsdns-34.org",
+              "ns-186.awsdns-23.com",
+              "ns-1868.awsdns-41.co.uk",
+              "ns-932.awsdns-52.net"
+            ],
+            "primary_name_server": "ns-1303.awsdns-34.org",
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "vpc": [],
+            "zone_id": "Z084024920JT9PE56J00D"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInVwZGF0ZSI6MTgwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_iam_instance_profile.ec2_ssm_instance_profile",
+            "aws_iam_role.ec2_ssm_role",
+            "data.aws_ami.ubuntu",
+            "module.alb.aws_lb.this",
+            "module.alb.aws_lb_listener.http",
+            "module.alb.aws_lb_target_group.this",
+            "module.alb.aws_lb_target_group_attachment.instance",
+            "module.compute.aws_instance.flexdesk-backend",
+            "module.network.aws_security_group.alb_sg",
+            "module.network.aws_security_group.app",
+            "module.network.module.vpc.aws_cloudwatch_log_group.flow_log",
+            "module.network.module.vpc.aws_customer_gateway.this",
+            "module.network.module.vpc.aws_db_subnet_group.database",
+            "module.network.module.vpc.aws_default_network_acl.this",
+            "module.network.module.vpc.aws_default_route_table.default",
+            "module.network.module.vpc.aws_default_security_group.this",
+            "module.network.module.vpc.aws_default_vpc.this",
+            "module.network.module.vpc.aws_egress_only_internet_gateway.this",
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_elasticache_subnet_group.elasticache",
+            "module.network.module.vpc.aws_flow_log.this",
+            "module.network.module.vpc.aws_iam_policy.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_iam_role_policy_attachment.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_network_acl.database",
+            "module.network.module.vpc.aws_network_acl.elasticache",
+            "module.network.module.vpc.aws_network_acl.intra",
+            "module.network.module.vpc.aws_network_acl.outpost",
+            "module.network.module.vpc.aws_network_acl.private",
+            "module.network.module.vpc.aws_network_acl.public",
+            "module.network.module.vpc.aws_network_acl.redshift",
+            "module.network.module.vpc.aws_network_acl_rule.database_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.database_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.elasticache_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.intra_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.outpost_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.private_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.public_outbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_inbound",
+            "module.network.module.vpc.aws_network_acl_rule.redshift_outbound",
+            "module.network.module.vpc.aws_redshift_subnet_group.redshift",
+            "module.network.module.vpc.aws_route.database_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.database_internet_gateway",
+            "module.network.module.vpc.aws_route.database_ipv6_egress",
+            "module.network.module.vpc.aws_route.database_nat_gateway",
+            "module.network.module.vpc.aws_route.private_dns64_nat_gateway",
+            "module.network.module.vpc.aws_route.private_ipv6_egress",
+            "module.network.module.vpc.aws_route.private_nat_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway",
+            "module.network.module.vpc.aws_route.public_internet_gateway_ipv6",
+            "module.network.module.vpc.aws_route_table.database",
+            "module.network.module.vpc.aws_route_table.elasticache",
+            "module.network.module.vpc.aws_route_table.intra",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_route_table.redshift",
+            "module.network.module.vpc.aws_route_table_association.database",
+            "module.network.module.vpc.aws_route_table_association.elasticache",
+            "module.network.module.vpc.aws_route_table_association.intra",
+            "module.network.module.vpc.aws_route_table_association.outpost",
+            "module.network.module.vpc.aws_route_table_association.private",
+            "module.network.module.vpc.aws_route_table_association.public",
+            "module.network.module.vpc.aws_route_table_association.redshift",
+            "module.network.module.vpc.aws_route_table_association.redshift_public",
+            "module.network.module.vpc.aws_subnet.database",
+            "module.network.module.vpc.aws_subnet.elasticache",
+            "module.network.module.vpc.aws_subnet.intra",
+            "module.network.module.vpc.aws_subnet.outpost",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_subnet.redshift",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_exclusion.this",
+            "module.network.module.vpc.aws_vpc_block_public_access_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options.this",
+            "module.network.module.vpc.aws_vpc_dhcp_options_association.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this",
+            "module.network.module.vpc.aws_vpn_gateway.this",
+            "module.network.module.vpc.aws_vpn_gateway_attachment.this",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.intra",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.private",
+            "module.network.module.vpc.aws_vpn_gateway_route_propagation.public",
+            "module.network.module.vpc.data.aws_caller_identity.current",
+            "module.network.module.vpc.data.aws_iam_policy_document.flow_log_cloudwatch_assume_role",
+            "module.network.module.vpc.data.aws_iam_policy_document.vpc_flow_log_cloudwatch",
+            "module.network.module.vpc.data.aws_partition.current",
+            "module.network.module.vpc.data.aws_region.current"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.logging",
+      "mode": "managed",
+      "type": "aws_cloudwatch_log_group",
+      "name": "app",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:logs:af-south-1:216989130949:log-group:/ecs/flexdesk",
+            "id": "/ecs/flexdesk",
+            "kms_key_id": "",
+            "log_group_class": "STANDARD",
+            "name": "/ecs/flexdesk",
+            "name_prefix": "",
+            "region": "af-south-1",
+            "retention_in_days": 30,
+            "skip_destroy": false,
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "module": "module.network",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "alb_sg",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:security-group/sg-050e33310a31f98e5",
+            "description": "Security group for ALB",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "id": "sg-050e33310a31f98e5",
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 80,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 80
+              },
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": null,
+                "from_port": 443,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 443
+              }
+            ],
+            "name": "alb-sg",
+            "name_prefix": "",
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "revoke_rules_on_delete": false,
+            "tags": {},
+            "tags_all": {},
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "app",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:security-group/sg-0fdd0462eb0fa863c",
+            "description": "Security group for Flexdesk application",
+            "egress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 0,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "-1",
+                "security_groups": [],
+                "self": false,
+                "to_port": 0
+              }
+            ],
+            "id": "sg-0fdd0462eb0fa863c",
+            "ingress": [
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 22,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 22
+              },
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 8000,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 8000
+              },
+              {
+                "cidr_blocks": [
+                  "0.0.0.0/0"
+                ],
+                "description": "",
+                "from_port": 80,
+                "ipv6_cidr_blocks": [],
+                "prefix_list_ids": [],
+                "protocol": "tcp",
+                "security_groups": [],
+                "self": false,
+                "to_port": 80
+              }
+            ],
+            "name": "flexdesk-app-sg",
+            "name_prefix": "",
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "flexdesk-app-sg"
+            },
+            "tags_all": {
+              "Name": "flexdesk-app-sg"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6OTAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_default_network_acl",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:network-acl/acl-0fa4e6d9fedf23bc4",
+            "default_network_acl_id": "acl-0fa4e6d9fedf23bc4",
+            "egress": [
+              {
+                "action": "allow",
+                "cidr_block": "",
+                "from_port": 0,
+                "icmp_code": 0,
+                "icmp_type": 0,
+                "ipv6_cidr_block": "::/0",
+                "protocol": "-1",
+                "rule_no": 101,
+                "to_port": 0
+              },
+              {
+                "action": "allow",
+                "cidr_block": "0.0.0.0/0",
+                "from_port": 0,
+                "icmp_code": 0,
+                "icmp_type": 0,
+                "ipv6_cidr_block": "",
+                "protocol": "-1",
+                "rule_no": 100,
+                "to_port": 0
+              }
+            ],
+            "id": "acl-0fa4e6d9fedf23bc4",
+            "ingress": [
+              {
+                "action": "allow",
+                "cidr_block": "",
+                "from_port": 0,
+                "icmp_code": 0,
+                "icmp_type": 0,
+                "ipv6_cidr_block": "::/0",
+                "protocol": "-1",
+                "rule_no": 101,
+                "to_port": 0
+              },
+              {
+                "action": "allow",
+                "cidr_block": "0.0.0.0/0",
+                "from_port": 0,
+                "icmp_code": 0,
+                "icmp_type": 0,
+                "ipv6_cidr_block": "",
+                "protocol": "-1",
+                "rule_no": 100,
+                "to_port": 0
+              }
+            ],
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "subnet_ids": [
+              "subnet-03553ca9264f177be",
+              "subnet-0bd29e75f3750b3aa",
+              "subnet-0cc8c2f763eb756e7",
+              "subnet-0dba675b7b6f0baf1"
+            ],
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_default_route_table",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:route-table/rtb-0d53753e9eb833294",
+            "default_route_table_id": "rtb-0d53753e9eb833294",
+            "id": "rtb-0d53753e9eb833294",
+            "owner_id": "216989130949",
+            "propagating_vgws": [],
+            "region": "af-south-1",
+            "route": [],
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "timeouts": {
+              "create": "5m",
+              "update": "5m"
+            },
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsInVwZGF0ZSI6MzAwMDAwMDAwMDAwfX0=",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_default_security_group",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:security-group/sg-06cbcce29bd45681a",
+            "description": "default VPC security group",
+            "egress": [],
+            "id": "sg-06cbcce29bd45681a",
+            "ingress": [],
+            "name": "default",
+            "name_prefix": "",
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-default",
+              "Project": "flexdesk"
+            },
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_eip",
+      "name": "nat",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "address": null,
+            "allocation_id": "eipalloc-0c79708253300a522",
+            "arn": "arn:aws:ec2:af-south-1:216989130949:elastic-ip/eipalloc-0c79708253300a522",
+            "associate_with_private_ip": null,
+            "association_id": "eipassoc-0e8af3d0b859037c9",
+            "carrier_ip": "",
+            "customer_owned_ip": "",
+            "customer_owned_ipv4_pool": "",
+            "domain": "vpc",
+            "id": "eipalloc-0c79708253300a522",
+            "instance": "",
+            "ipam_pool_id": null,
+            "network_border_group": "af-south-1",
+            "network_interface": "eni-03c59f9d0a849fd90",
+            "private_dns": "ip-10-0-101-221.af-south-1.compute.internal",
+            "private_ip": "10.0.101.221",
+            "ptr_record": "",
+            "public_dns": "ec2-13-246-117-100.af-south-1.compute.amazonaws.com",
+            "public_ip": "13.246.117.100",
+            "public_ipv4_pool": "amazon",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjoxODAwMDAwMDAwMDAsInJlYWQiOjkwMDAwMDAwMDAwMCwidXBkYXRlIjozMDAwMDAwMDAwMDB9fQ==",
+          "dependencies": [
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_internet_gateway",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:internet-gateway/igw-0c6b6e1417fdff9e5",
+            "id": "igw-0c6b6e1417fdff9e5",
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxMjAwMDAwMDAwMDAwLCJkZWxldGUiOjEyMDAwMDAwMDAwMDAsInVwZGF0ZSI6MTIwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_nat_gateway",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "allocation_id": "eipalloc-0c79708253300a522",
+            "association_id": "eipassoc-0e8af3d0b859037c9",
+            "connectivity_type": "public",
+            "id": "nat-008f715c96ea73bba",
+            "network_interface_id": "eni-03c59f9d0a849fd90",
+            "private_ip": "10.0.101.221",
+            "public_ip": "13.246.117.100",
+            "region": "af-south-1",
+            "secondary_allocation_ids": [],
+            "secondary_private_ip_address_count": 0,
+            "secondary_private_ip_addresses": [],
+            "subnet_id": "subnet-0bd29e75f3750b3aa",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTgwMDAwMDAwMDAwMCwidXBkYXRlIjo2MDAwMDAwMDAwMDB9fQ==",
+          "dependencies": [
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route",
+      "name": "private_nat_gateway",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "carrier_gateway_id": "",
+            "core_network_arn": "",
+            "destination_cidr_block": "0.0.0.0/0",
+            "destination_ipv6_cidr_block": "",
+            "destination_prefix_list_id": "",
+            "egress_only_gateway_id": "",
+            "gateway_id": "",
+            "id": "r-rtb-07817f93541a552501080289494",
+            "instance_id": "",
+            "instance_owner_id": "",
+            "local_gateway_id": "",
+            "nat_gateway_id": "nat-008f715c96ea73bba",
+            "network_interface_id": "",
+            "origin": "CreateRoute",
+            "region": "af-south-1",
+            "route_table_id": "rtb-07817f93541a55250",
+            "state": "active",
+            "timeouts": {
+              "create": "5m",
+              "delete": null,
+              "update": null
+            },
+            "transit_gateway_id": "",
+            "vpc_endpoint_id": "",
+            "vpc_peering_connection_id": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_eip.nat",
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_nat_gateway.this",
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route",
+      "name": "public_internet_gateway",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "carrier_gateway_id": "",
+            "core_network_arn": "",
+            "destination_cidr_block": "0.0.0.0/0",
+            "destination_ipv6_cidr_block": "",
+            "destination_prefix_list_id": "",
+            "egress_only_gateway_id": "",
+            "gateway_id": "igw-0c6b6e1417fdff9e5",
+            "id": "r-rtb-01a33966e7b8f9c321080289494",
+            "instance_id": "",
+            "instance_owner_id": "",
+            "local_gateway_id": "",
+            "nat_gateway_id": "",
+            "network_interface_id": "",
+            "origin": "CreateRoute",
+            "region": "af-south-1",
+            "route_table_id": "rtb-01a33966e7b8f9c32",
+            "state": "active",
+            "timeouts": {
+              "create": "5m",
+              "delete": null,
+              "update": null
+            },
+            "transit_gateway_id": "",
+            "vpc_endpoint_id": "",
+            "vpc_peering_connection_id": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_internet_gateway.this",
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route_table",
+      "name": "private",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:route-table/rtb-07817f93541a55250",
+            "id": "rtb-07817f93541a55250",
+            "owner_id": "216989130949",
+            "propagating_vgws": [],
+            "region": "af-south-1",
+            "route": [
+              {
+                "carrier_gateway_id": "",
+                "cidr_block": "0.0.0.0/0",
+                "core_network_arn": "",
+                "destination_prefix_list_id": "",
+                "egress_only_gateway_id": "",
+                "gateway_id": "",
+                "ipv6_cidr_block": "",
+                "local_gateway_id": "",
+                "nat_gateway_id": "nat-008f715c96ea73bba",
+                "network_interface_id": "",
+                "transit_gateway_id": "",
+                "vpc_endpoint_id": "",
+                "vpc_peering_connection_id": ""
+              }
+            ],
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route_table",
+      "name": "public",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:route-table/rtb-01a33966e7b8f9c32",
+            "id": "rtb-01a33966e7b8f9c32",
+            "owner_id": "216989130949",
+            "propagating_vgws": [],
+            "region": "af-south-1",
+            "route": [
+              {
+                "carrier_gateway_id": "",
+                "cidr_block": "0.0.0.0/0",
+                "core_network_arn": "",
+                "destination_prefix_list_id": "",
+                "egress_only_gateway_id": "",
+                "gateway_id": "igw-0c6b6e1417fdff9e5",
+                "ipv6_cidr_block": "",
+                "local_gateway_id": "",
+                "nat_gateway_id": "",
+                "network_interface_id": "",
+                "transit_gateway_id": "",
+                "vpc_endpoint_id": "",
+                "vpc_peering_connection_id": ""
+              }
+            ],
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "private",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-0261f2638521b4257",
+            "region": "af-south-1",
+            "route_table_id": "rtb-07817f93541a55250",
+            "subnet_id": "subnet-0dba675b7b6f0baf1",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        },
+        {
+          "index_key": 1,
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-09a589462218f593a",
+            "region": "af-south-1",
+            "route_table_id": "rtb-07817f93541a55250",
+            "subnet_id": "subnet-0cc8c2f763eb756e7",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_route_table.private",
+            "module.network.module.vpc.aws_subnet.private",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_route_table_association",
+      "name": "public",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-0887a877fff0916da",
+            "region": "af-south-1",
+            "route_table_id": "rtb-01a33966e7b8f9c32",
+            "subnet_id": "subnet-0bd29e75f3750b3aa",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        },
+        {
+          "index_key": 1,
+          "schema_version": 0,
+          "attributes": {
+            "gateway_id": "",
+            "id": "rtbassoc-00892e61f683f289a",
+            "region": "af-south-1",
+            "route_table_id": "rtb-01a33966e7b8f9c32",
+            "subnet_id": "subnet-03553ca9264f177be",
+            "timeouts": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjozMDAwMDAwMDAwMDAsImRlbGV0ZSI6MzAwMDAwMDAwMDAwLCJ1cGRhdGUiOjEyMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "module.network.module.vpc.aws_route_table.public",
+            "module.network.module.vpc.aws_subnet.public",
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "private",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:subnet/subnet-0dba675b7b6f0baf1",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "af-south-1a",
+            "availability_zone_id": "afs1-az1",
+            "cidr_block": "10.0.1.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0dba675b7b6f0baf1",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "216989130949",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        },
+        {
+          "index_key": 1,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:subnet/subnet-0cc8c2f763eb756e7",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "af-south-1b",
+            "availability_zone_id": "afs1-az2",
+            "cidr_block": "10.0.2.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0cc8c2f763eb756e7",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "216989130949",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private-af-south-1b",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-private-af-south-1b",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_subnet",
+      "name": "public",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:subnet/subnet-0bd29e75f3750b3aa",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "af-south-1a",
+            "availability_zone_id": "afs1-az1",
+            "cidr_block": "10.0.101.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-0bd29e75f3750b3aa",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "216989130949",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public-af-south-1a",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        },
+        {
+          "index_key": 1,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:subnet/subnet-03553ca9264f177be",
+            "assign_ipv6_address_on_creation": false,
+            "availability_zone": "af-south-1b",
+            "availability_zone_id": "afs1-az2",
+            "cidr_block": "10.0.102.0/24",
+            "customer_owned_ipv4_pool": "",
+            "enable_dns64": false,
+            "enable_lni_at_device_index": 0,
+            "enable_resource_name_dns_a_record_on_launch": false,
+            "enable_resource_name_dns_aaaa_record_on_launch": false,
+            "id": "subnet-03553ca9264f177be",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_association_id": "",
+            "ipv6_native": false,
+            "map_customer_owned_ip_on_launch": false,
+            "map_public_ip_on_launch": false,
+            "outpost_arn": "",
+            "owner_id": "216989130949",
+            "private_dns_hostname_type_on_launch": "ip-name",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public-af-south-1b",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc-public-af-south-1b",
+              "Project": "flexdesk"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-068551db8d21299ad"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMH0sInNjaGVtYV92ZXJzaW9uIjoiMSJ9",
+          "dependencies": [
+            "module.network.module.vpc.aws_vpc.this",
+            "module.network.module.vpc.aws_vpc_ipv4_cidr_block_association.this"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.network.module.vpc",
+      "mode": "managed",
+      "type": "aws_vpc",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:af-south-1:216989130949:vpc/vpc-068551db8d21299ad",
+            "assign_generated_ipv6_cidr_block": false,
+            "cidr_block": "10.0.0.0/16",
+            "default_network_acl_id": "acl-0fa4e6d9fedf23bc4",
+            "default_route_table_id": "rtb-0d53753e9eb833294",
+            "default_security_group_id": "sg-06cbcce29bd45681a",
+            "dhcp_options_id": "dopt-04336444c7f7e9767",
+            "enable_dns_hostnames": true,
+            "enable_dns_support": true,
+            "enable_network_address_usage_metrics": false,
+            "id": "vpc-068551db8d21299ad",
+            "instance_tenancy": "default",
+            "ipv4_ipam_pool_id": null,
+            "ipv4_netmask_length": null,
+            "ipv6_association_id": "",
+            "ipv6_cidr_block": "",
+            "ipv6_cidr_block_network_border_group": "",
+            "ipv6_ipam_pool_id": "",
+            "ipv6_netmask_length": 0,
+            "main_route_table_id": "rtb-0d53753e9eb833294",
+            "owner_id": "216989130949",
+            "region": "af-south-1",
+            "tags": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc",
+              "Project": "flexdesk"
+            },
+            "tags_all": {
+              "Environment": "production",
+              "Name": "flexdesk-vpc",
+              "Project": "flexdesk"
+            }
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ=="
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}
+

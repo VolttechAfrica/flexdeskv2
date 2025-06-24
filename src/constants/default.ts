@@ -1,0 +1,1 @@
+export const DEFAULT_PASSWORD = "School123456";

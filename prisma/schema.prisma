@@ -1,0 +1,485 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_CONNECTION_STRING_DEV")
+}
+
+enum StaffStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+  ON_LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TermStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SchoolStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  GRADUATED
+  EXPELLED
+}
+
+enum SubjectStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model School {
+  id        String       @id @default(uuid())
+  name      String       @db.VarChar(150)
+  shortName String       @db.VarChar(50)
+  email     String       @unique
+  phone     String?      @db.VarChar(20)
+  address   String?      @db.VarChar(200)
+  slogan    String?      @db.VarChar(200)
+  logo      String?      @db.VarChar(200)
+  website   String?      @db.VarChar(200)
+  state     String?      @db.VarChar(100)
+  lga       String?      @db.VarChar(100)
+  country   String?      @db.VarChar(100)
+  status    SchoolStatus @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  roles    Role[]
+  staff    Staff[]
+  terms    Term[]
+  classes  SchoolClass[]
+  students Student[]
+  tasks    Task[]
+
+  @@index([name], name: "idx_school_name")
+  @@index([email], name: "idx_school_email")
+}
+
+model Role {
+  id        String   @id @default(uuid())
+  schoolId  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school         School           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff          Staff[]
+  student        Student[]
+  RolePermission RolePermission[]
+
+  @@unique([schoolId, name], name: "unique_role_name_school")
+  @@index([schoolId], name: "idx_role_school")
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  action      String  @unique
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId], name: "unique_role_permission")
+}
+
+model Staff {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  roleId    String
+  schoolId  String
+  firstName String      @db.VarChar(100)
+  lastName  String      @db.VarChar(100)
+  otherName String?     @db.VarChar(100)
+  status    StaffStatus @default(INACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  role            Role                 @relation(fields: [roleId], references: [id])
+  school          School               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  profile         StaffProfile?
+  qualifications  StaffQualification[]
+  staffLogin      StaffLogin?
+  bankAccount     StaffBankAccount?
+  attendances     StaffAttendance[]
+  leaves          StaffLeave[]
+  firstTimeLogin  FirstTimeLogin?
+  assignedClasses AssignedClasses[]
+  userActivity    userActivity[]
+  taskMembers     TaskMember[]
+  createdTasks    Task[]              @relation("TaskCreator")
+
+  @@index([roleId], name: "idx_staff_role")
+  @@index([schoolId], name: "idx_staff_school")
+  @@index([email], name: "idx_staff_email")
+}
+
+model StaffProfile {
+  id             String   @id @default(uuid())
+  staffId        String   @unique
+  profilePicture String?  @db.VarChar(200)
+  dateOfBirth    String?  @db.VarChar(100)
+  gender         String?  @db.VarChar(100)
+  phoneNumber    String?  @db.VarChar(100)
+  address        String?  @db.VarChar(100)
+  state          String?  @db.VarChar(100)
+  city           String?  @db.VarChar(100)
+  lga            String?  @db.VarChar(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_staff_profile")
+}
+
+model StaffQualification {
+  staffId       String   @unique
+  qualification String   @db.VarChar(100)
+  institution   String   @db.VarChar(100)
+  course        String   @db.VarChar(100)
+  grade         String?  @db.VarChar(100)
+  yearObtained  String?  @db.VarChar(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, qualification, institution, course], name: "idx_staff_qualification_unique")
+  @@index([staffId], name: "idx_staff_qualification")
+}
+
+model StaffLogin {
+  id        String   @id @default(uuid())
+  staffId   String   @unique
+  password  String   @db.VarChar(150)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_staff_login")
+}
+
+model StaffBankAccount {
+  id          String   @id @default(uuid())
+  staffId     String   @unique
+  accountName String?  @db.VarChar(100)
+  bankName    String?  @db.VarChar(100)
+  accountNo   String?  @db.VarChar(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_staff_bank_account")
+}
+
+model StaffAttendance {
+  id        String   @id @default(uuid())
+  staffId   String
+  date      DateTime @default(now())
+  timeIn    DateTime @default(now())
+  timeOut   DateTime @default(now())
+  termId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  term  Term  @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_staff_attendance")
+  @@index([termId], name: "idx_staff_attendance_term")
+  @@index([staffId, termId], name: "idx_staff_attendance_staff_term")
+}
+
+model StaffLeave {
+  id        String      @id @default(uuid())
+  staffId   String
+  leaveType String?     @db.VarChar(100)
+  startDate DateTime    @default(now())
+  endDate   DateTime    @default(now())
+  reason    String?     @db.VarChar(200)
+  status    LeaveStatus @default(PENDING)
+  termId    String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @default(now())
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  term  Term  @relation(fields: [termId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_staff_leave")
+  @@index([termId], name: "idx_staff_leave_term")
+  @@index([staffId, termId], name: "idx_staff_leave_staff_term")
+  @@index([status], name: "idx_staff_leave_status")
+}
+
+model Term {
+  id        String     @id @default(uuid())
+  schoolId  String
+  name      String     @db.VarChar(100)
+  term      Int
+  year      String     @db.VarChar(100)
+  startDate String     @db.VarChar(100)
+  endDate   String     @db.VarChar(100)
+  status    TermStatus @default(INACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  staffAttendances StaffAttendance[]
+  staffLeaves      StaffLeave[]
+  students         Student[]
+  tasks           Task[]
+
+  @@index([schoolId], name: "idx_term_school")
+}
+
+model FirstTimeLogin {
+  userId    String   @id @unique
+  createdAt DateTime @default(now())
+
+  staff Staff @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_first_time_login")
+}
+
+model SchoolClass {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  schoolId  String
+  level     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  school          School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classArms       ClassArm[]
+  students        Student[]
+  assignedClasses AssignedClasses[]
+  subjects        Subject[]
+
+  @@index([schoolId], name: "idx_class_school")
+}
+
+model ClassArm {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(100)
+  classId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  class           SchoolClass       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  students        Student[]
+  assignedClasses AssignedClasses[]
+  subjects        Subject[]
+
+  @@index([classId], name: "idx_class_arm_class")
+}
+
+model AssignedClasses {
+  id         String   @id @default(uuid())
+  staffId    String
+  classId    String
+  classArmId String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  staff    Staff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  class    SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classArm ClassArm?   @relation(fields: [classArmId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, classId, classArmId], name: "idx_assigned_classes_unique")
+  @@index([staffId], name: "idx_assigned_classes_staff")
+  @@index([classId, classArmId], name: "idx_assigned_classes_class_arm")
+}
+
+model Student {
+  id              String        @id @db.VarChar(100)
+  firstName       String        @db.VarChar(100)
+  lastName        String        @db.VarChar(100)
+  otherName       String?       @db.VarChar(100)
+  classId         String
+  classArmId      String?
+  roleId          String
+  dateOfAdmission DateTime      @default(now())
+  termId          String
+  status          StudentStatus @default(INACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @default(now())
+  schoolId        String
+
+  class     SchoolClass       @relation(fields: [classId], references: [id])
+  classArm  ClassArm?         @relation(fields: [classArmId], references: [id])
+  school    School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  role      Role              @relation(fields: [roleId], references: [id])
+  term      Term              @relation(fields: [termId], references: [id])
+  profile   StudentProfile?
+  graduated GraduatedStudent?
+
+  @@index([classId], name: "idx_student_class")
+  @@index([classArmId], name: "idx_student_class_arm")
+  @@index([schoolId], name: "idx_student_school")
+  @@index([termId], name: "idx_student_term")
+  @@index([roleId], name: "idx_student_role")
+}
+
+model StudentProfile {
+  studentId      String   @id @unique
+  profilePicture String?  @db.VarChar(200)
+  dateOfBirth    String?  @db.VarChar(100)
+  email          String?  @db.VarChar(100)
+  phoneNumber    String?  @db.VarChar(50)
+  address        String?  @db.VarChar(100)
+  state          String?  @db.VarChar(100)
+  lga            String?  @db.VarChar(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now())
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], name: "idx_student_profile")
+}
+
+model GraduatedStudent {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  year      String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], name: "idx_graduated_student")
+}
+
+model Subject {
+  id         String        @id @default(uuid())
+  name       String        @db.VarChar(100)
+  code       String?       @db.VarChar(100)
+  classId    String
+  classArmId String?
+  status     SubjectStatus @default(ACTIVE)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  class    SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classArm ClassArm?   @relation(fields: [classArmId], references: [id])
+}
+
+model userActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  activity  String
+  ipAddress String?  @db.VarChar(100)
+  hostName  String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff Staff @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_user_activity")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(100)
+  description String?      @db.VarChar(500)
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  startDate   DateTime
+  endDate     DateTime
+  createdBy   String
+  schoolId    String
+  termId      String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  completedAt DateTime?
+  notes       String?      @db.VarChar(1000)
+
+  taskMembers TaskMember[]
+  school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  term        Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
+  creator     Staff        @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([name], name: "idx_task_name")
+  @@index([startDate], name: "idx_task_start_date")
+  @@index([createdBy], name: "idx_task_creator")
+  @@index([schoolId], name: "idx_task_school")
+  @@index([termId], name: "idx_task_term")
+  @@index([status], name: "idx_task_status")
+  @@index([priority], name: "idx_task_priority")
+}
+
+enum TaskMemberRole {
+  ASSIGNEE
+  REVIEWER
+  OBSERVER
+}
+
+enum TaskMemberStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model TaskMember {
+  id        String   @id @default(uuid())
+  taskId    String
+  memberId  String
+  role      TaskMemberRole @default(ASSIGNEE)
+  status    TaskMemberStatus @default(PENDING)
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  member    Staff    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([taskId], name: "idx_task_member_task")
+  @@index([memberId], name: "idx_task_member_staff")
+  @@index([role], name: "idx_task_member_role")
+  @@index([status], name: "idx_task_member_status")
+}

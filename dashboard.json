@@ -1,0 +1,361 @@
+{
+    "title": "Flexdesk Backend",
+    "description": "Monitoring dashboard for Flexdesk Backend services",
+    "layout_type": "ordered",
+    "widgets": [
+        {
+            "definition": {
+                "type": "group",
+                "title": "Application Overview",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:api.request{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "API Requests"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:api.error{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "API Errors"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "p95:api.request.duration{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Request Latency (p95)"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Docker Metrics",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:docker.cpu.usage{container_name:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Container CPU Usage"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:docker.mem.usage{container_name:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Container Memory Usage"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:docker.containers.running{container_name:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Running Containers"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:docker.containers.restarts{container_name:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Container Restarts"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Database Performance",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:db.query.duration{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Average Query Duration"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:db.query{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Total Queries"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:db.error{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Database Errors"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Cache Performance",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:cache.hit{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Cache Hits"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:cache.miss{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Cache Misses"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "query_value",
+                            "requests": [
+                                {
+                                    "q": "sum:cache.hit{service:flexdesk-backend} / (sum:cache.hit{service:flexdesk-backend} + sum:cache.miss{service:flexdesk-backend}) * 100",
+                                    "conditional_formats": [
+                                        {
+                                            "palette": "green",
+                                            "comparator": ">=",
+                                            "value": 80
+                                        },
+                                        {
+                                            "palette": "yellow",
+                                            "comparator": ">=",
+                                            "value": 60
+                                        },
+                                        {
+                                            "palette": "red",
+                                            "comparator": "<",
+                                            "value": 60
+                                        }
+                                    ]
+                                }
+                            ],
+                            "title": "Cache Hit Rate (%)",
+                            "precision": 2,
+                            "autoscale": true
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Authentication Metrics",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:auth.success{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Successful Logins"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:auth.failure{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Failed Logins"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "System Resources",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:system.cpu.user{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "CPU Usage"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:system.mem.used{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Memory Usage"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "avg:system.load.1{service:flexdesk-backend}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "System Load"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Error Tracking",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:api.error{service:flexdesk-backend} by {error_type}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Errors by Type"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "timeseries",
+                            "requests": [
+                                {
+                                    "q": "sum:db.error{service:flexdesk-backend} by {error_type}",
+                                    "display_type": "line"
+                                }
+                            ],
+                            "title": "Database Errors by Type"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "definition": {
+                "type": "group",
+                "title": "Log Stream",
+                "layout_type": "ordered",
+                "widgets": [
+                    {
+                        "definition": {
+                            "type": "log_stream",
+                            "title": "Application Logs",
+                            "indexes": ["main"],
+                            "query": "service:flexdesk-backend",
+                            "columns": ["timestamp", "status", "service", "message"],
+                            "show_date_column": true,
+                            "show_message_column": true,
+                            "message_display": "expanded-md"
+                        }
+                    },
+                    {
+                        "definition": {
+                            "type": "log_stream",
+                            "title": "Error Logs",
+                            "indexes": ["main"],
+                            "query": "service:flexdesk-backend status:error",
+                            "columns": ["timestamp", "status", "service", "message"],
+                            "show_date_column": true,
+                            "show_message_column": true,
+                            "message_display": "expanded-md"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
