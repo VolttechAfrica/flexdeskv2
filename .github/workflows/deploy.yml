@@ -68,17 +68,17 @@ jobs:
         run: |
           echo "Waiting for app to be healthy..."
           for i in {1..30}; do
-            STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/v2/health || true)
-              if [ "$STATUS" = "200" ]; then
-                echo "App is healthy!"
-                exit 0
-              fi
-              echo "Health check failed (status: $STATUS). Retrying in 5s..."
-              sleep 5
-            done
-            echo "Service failed health check after 30 attempts."
-            docker-compose logs
-            exit 1
+            RESPONSE=$(curl -s http://localhost:8000/api/v2/health || echo '{"status":"error"}')
+            if echo "$RESPONSE" | grep -q '"status":"ok ✅"'; then
+              echo "App is healthy!"
+              exit 0
+            fi
+            echo "Health check failed (response: $RESPONSE). Retrying in 5s..."
+            sleep 5
+          done
+          echo "Service failed health check after 30 attempts."
+          docker-compose logs
+          exit 1
 
       - name: Shut down Docker Compose
         if: always()
