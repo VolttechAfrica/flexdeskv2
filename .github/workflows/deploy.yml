@@ -56,7 +56,7 @@ jobs:
 
       - name: Start Docker Compose services for testing
         run: |
-          cp .env.test .env
+          cp .env .env.test
           docker-compose -f docker-compose.test.yaml up -d --build
 
       - name: Run health check
@@ -74,6 +74,10 @@ jobs:
             echo "Service failed health check after 30 attempts."
             docker-compose logs
             exit 1
+
+      - name: Shut down Docker Compose
+        if: always()
+        run: docker-compose -f docker-compose.test.yaml down --volumes --remove-orphans
 
   # ------------------ CD JOB ------------------
   cd:
