@@ -34,8 +34,46 @@ jobs:
           # npm run lint
           # npm run test
 
-      - name: Build Docker image (no push)
-        run: docker build -t flexdesk-preview .
+      - name: Create .env file
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_USER=${{ secrets.REDIS_USER }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
+          DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
+          EOF
+
+      - name: Start Docker Compose services for testing
+        run: |
+          cp .env.test .env
+          docker-compose -f docker-compose.test.yaml up -d --build
+
+      - name: Run health check
+        run: |
+          echo "Waiting for app to be healthy..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/api/v2/health || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "App is healthy!"
+                exit 0
+              fi
+              echo "Health check failed (status: $STATUS). Retrying in 5s..."
+              sleep 5
+            done
+            echo "Service failed health check after 30 attempts."
+            docker-compose logs
+            exit 1
 
   # ------------------ CD JOB ------------------
   cd:

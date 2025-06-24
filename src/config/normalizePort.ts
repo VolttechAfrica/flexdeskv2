@@ -12,6 +12,6 @@ const normalizePort = (val: string) => {
   return false;
 };
 
-const PORT = normalizePort(env.port ? env.port.toString() : "3000");
+const PORT = normalizePort(env.port ? env.port.toString() : "8000");
 
 export default PORT;
