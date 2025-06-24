@@ -54,6 +54,11 @@ jobs:
           DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
           EOF
 
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose-plugin
+          docker compose version
       - name: Start Docker Compose services for testing
         run: |
           cp .env .env.test
