@@ -37,6 +37,8 @@ RUN --mount=type=bind,source=package.json,target=package.json \
     npm ci --include=dev --loglevel verbose
 
 COPY . .
+
+RUN apt-get update -y && apt-get install -y openssl
 RUN npx prisma generate --no-engine
 RUN npm run build
 
