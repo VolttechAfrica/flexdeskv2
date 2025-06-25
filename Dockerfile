@@ -32,8 +32,9 @@ FROM base AS production
 RUN npm cache clean --force
 RUN apt-get update -y && apt-get install -y openssl
 # Install all dependencies (including dev) for build
-COPY package*.json ./
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=package-lock.json,target=package-lock.json \
+    --mount=type=cache,target=/root/.npm \
     npm ci --include=dev --loglevel verbose
 
 COPY . .
