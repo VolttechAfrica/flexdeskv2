@@ -1,15 +1,11 @@
-name: CI/CD Pipeline
+name: Continuous Deployment
 
 on:
-  pull_request:
-    branches: [master]
   push:
     branches: [master]
 
 jobs:
-  # ------------------ CI JOB ------------------
-  ci:
-    if: github.event_name == 'pull_request'
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,27 +15,25 @@ jobs:
         with:
           node-version: 20
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-      - name: Install pm2
-        run: npm install -g pm2
-
-      - name: Lint, test or type-check (optional)
+      - name: Install Docker Compose
         run: |
-          echo "Add lint/test/build steps here"
-          # npm run lint
-          # npm run test
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
 
-      - name: Create .env file
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: docker build -t volttechafrica/flexdeskbackend:latest .
+
+      - name: Push Docker image to Docker Hub
+        run: docker push volttechafrica/flexdeskbackend:latest
+
+      - name: Set up Environment Variables
         run: |
           cat <<EOF > .env
           DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
@@ -62,76 +56,6 @@ jobs:
           NODE_NO_WARNINGS=1
           ENV=production
           EOF
-
-      - name: Start test server
-        run: |
-          cp .env .env.test
-          npm run start
-
-      - name: Run health check
-        run: |
-          echo "Waiting for app to be healthy..."
-          for i in {1..30}; do
-            RESPONSE=$(curl -s http://localhost:8000/api/v2/health || echo '{"status":"error"}')
-            if echo "$RESPONSE" | grep -q '"status":"ok ✅"'; then
-              echo "App is healthy!"
-              npm run status
-              exit 0
-            fi
-            echo "Health check failed (response: $RESPONSE). Retrying in 5s..."
-            sleep 5
-          done
-          echo "Service failed health check after 30 attempts."
-          npm run logs
-          exit 1
-
-      - name: Shut down Docker Compose
-        if: always()
-        run: |
-          npm run stop
-          npm run delete
-
-  # ------------------ CD JOB ------------------
-  cd:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Generate .env file
-        run: |
-          cat <<EOF > .env
-          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
-          JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
-          REDIS_HOST=${{ secrets.REDIS_HOST }}
-          REDIS_PORT=${{ secrets.REDIS_PORT }}
-          REDIS_USER=${{ secrets.REDIS_USER }}
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
-          EMAIL_USER=${{ secrets.EMAIL_USER }}
-          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
-          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
-          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
-          DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
-          DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
-          DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
-          PORT=8000
-          NODE_ENV=production
-          NODE_NO_WARNINGS=1
-          ENV=production
-          EOF
-
-      - name: Encode .env file to base64
-        id: env_base64
-        run: |
-          ENV_CONTENT=$(base64 .env | tr -d '\n')
-          echo "ENV_CONTENT=$ENV_CONTENT" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -140,13 +64,34 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: af-south-1
 
-      - name: Send deploy command to EC2
+      - name: Deploy to EC2
         run: |
             aws ssm send-command \
-              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
               --document-name "AWS-RunShellScript" \
-              --comment "Deploy Flexdesk app via deploy.sh using PM2" \
-              --parameters '{"commands":["curl -o /home/ubuntu/deploy.sh https://raw.githubusercontent.com/VolttechAfrica/flexdeskv2/master/deploy.sh","chmod +x /home/ubuntu/deploy.sh","/home/ubuntu/deploy.sh \"${{ env.ENV_CONTENT }}\""]}' \
-              --output text
-        
-        
+              --region af-south-1 \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --parameters 'commands=[
+                "mkdir -p /home/ubuntu/flexdeskBackend"
+              ]' \
+              --comment "Prepare directory for Flexdesk files"
+
+            aws ssm send-command \
+              --document-name "AWS-RunShellScript" \
+              --region af-south-1 \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --parameters 'commands=["cat > /home/ubuntu/flexdeskBackend/.env <<EOF\n'"$(<.env)"'\nEOF"]' \
+              --comment "Transfer .env"
+
+            aws ssm send-command \
+              --document-name "AWS-RunShellScript" \
+              --region af-south-1 \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --parameters 'commands=["cat > /home/ubuntu/flexdeskBackend/docker-compose.yaml <<EOF\n'"$(<docker-compose.yaml)"'\nEOF"]' \
+              --comment "Transfer docker-compose.yaml"
+
+            aws ssm send-command \
+              --document-name "AWS-RunShellScript" \
+              --region af-south-1 \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --parameters 'commands=["cd /home/ubuntu/flexdeskBackend","docker-compose pull","docker-compose down","docker-compose up -d"]' \
+              --comment "Start Docker services"
