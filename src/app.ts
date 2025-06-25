@@ -67,6 +67,20 @@ export const buildServer = async () => {
     credentials: true,
   });
   app.register(sensible);
+
+  // Set error handlers before registering metrics plugin
+  app.setNotFoundHandler((request, reply) => {
+    reply.notFound("The requested resource was not found.");
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    app.log.error(error);
+    reply.status(error.statusCode || 500).send({
+      error: error.name || 'Internal Server Error',
+      message: error.message || 'An unexpected error occurred',
+    });
+  });
+
   app.register(metricsPlugin);
   app.register(monitoringPlugin);
 
@@ -96,19 +110,6 @@ export const buildServer = async () => {
 
   app.get("/", async (request, reply) => {
     reply.unauthorized();
-  });
-
-  // Set error handlers before app.ready()
-  app.setNotFoundHandler((request, reply) => {
-    reply.notFound("The requested resource was not found.");
-  });
-
-  app.setErrorHandler((error, request, reply) => {
-    app.log.error(error);
-    reply.status(error.statusCode || 500).send({
-      error: error.name || 'Internal Server Error',
-      message: error.message || 'An unexpected error occurred',
-    });
   });
 
   // Wait for Redis to be ready

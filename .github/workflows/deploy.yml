@@ -74,7 +74,7 @@ jobs:
             --output text)
 
           # Wait and check the command result
-          sleep 20  # wait a few seconds before fetching status
+          sleep 50  # wait a few seconds before fetching status
 
           status=$(aws ssm list-command-invocations \
             --command-id "$command_id" \
