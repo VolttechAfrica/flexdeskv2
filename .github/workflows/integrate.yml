@@ -1,0 +1,75 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Set up Environment Variables
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_USER=${{ secrets.REDIS_USER }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
+          DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
+          PORT=8000
+          NODE_ENV=production
+          NODE_NO_WARNINGS=1
+          ENV=production
+          EOF
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
+
+      - name: Start Docker Compose services for testing
+        run: |
+          cp .env .env.test
+          docker-compose -f docker-compose.test.yaml up -d --build
+
+      - name: Run health check
+        run: |
+            echo "Waiting for app to be healthy..."
+            for i in {1..30}; do
+              RESPONSE=$(curl -s http://localhost:8000/api/v2/health || echo '{"status":"error"}')
+              if echo "$RESPONSE" | grep -q '"status":"ok ✅"'; then
+                echo "App is healthy!"
+                exit 0
+              fi
+              echo "Health check failed (response: $RESPONSE). Retrying in 5s..."
+              sleep 5
+            done
+            echo "Service failed health check after 30 attempts."
+            docker-compose logs
+            exit 1
+
+      - name: Shut down Docker Compose
+        if: always()
+        run: |
+          docker-compose down --volumes --remove-orphans
