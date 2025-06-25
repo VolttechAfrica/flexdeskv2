@@ -1,8 +1,5 @@
 services:
   app:
-    build:
-      context: .
-      target: production
     image: volttechafrica/flexdeskbackend:latest
     container_name: flexdesk-backend
     restart: unless-stopped
