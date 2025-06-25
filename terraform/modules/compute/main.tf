@@ -11,7 +11,9 @@ resource "aws_instance" "flexdesk-backend" {
 
   user_data = <<-EOF
               #!/bin/bash
-              apt update -y
+              apt update && sudo apt upgrade -y
+              apt install -y curl ca-certificates gnupg
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               
               # Install Docker
               apt install -y docker.io
