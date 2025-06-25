@@ -64,9 +64,9 @@ jobs:
               "echo ${{ env.DOTENV }} | base64 -d > /home/ubuntu/flexdeskBackend/.env",
               "echo ${{ env.DOCKER_COMPOSE }} | base64 -d > /home/ubuntu/flexdeskBackend/docker-compose.yaml",
               "cd /home/ubuntu/flexdeskBackend",
-              "docker compose pull",
-              "docker compose down",
-              "docker compose up -d"
+              "sudo docker-compose pull",
+              "sudo docker-compose down",
+              "sudo docker-compose up -d"
             ]' \
             --output text \
             --region af-south-1
