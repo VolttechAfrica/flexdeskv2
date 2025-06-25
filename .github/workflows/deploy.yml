@@ -53,6 +53,9 @@ jobs:
           DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
           DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
           PORT=8000
+          NODE_ENV=production
+          NODE_NO_WARNINGS=1
+          ENV=production
           EOF
 
       - name: Install Docker Compose
