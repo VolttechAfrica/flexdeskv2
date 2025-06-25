@@ -30,6 +30,7 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 
 RUN npm cache clean --force
+RUN apt-get update -y && apt-get install -y openssl
 # Install all dependencies (including dev) for build
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
