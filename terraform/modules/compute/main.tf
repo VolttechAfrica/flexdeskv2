@@ -27,6 +27,9 @@ resource "aws_instance" "flexdesk-backend" {
               
               # Install nginx
               apt install -y nginx
+
+              #install nodejs
+              sudo apt-get install -y nodejs
               
               # Start nginx
               systemctl start nginx
