@@ -52,7 +52,7 @@ npm run build
 # Start Datadog agent (if applicable)
 if [[ -f "docker-compose.yaml" ]]; then
   log "🐳 Starting Docker services (e.g., Datadog)..."
-  docker-compose up -d
+  sudo docker-compose up -d
 else
   log "⚠️ Warning: docker-compose.yaml not found, skipping Docker services."
 fi
