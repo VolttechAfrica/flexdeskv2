@@ -140,26 +140,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: af-south-1
 
-      - name: Send .env & Deploy via SSM to EC2
+      - name: Send deploy command to EC2
         run: |
-          aws ssm send-command \
-            --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
-            --document-name "AWS-RunShellScript" \
-            --comment "Deploy Flexdesk app without Docker using PM2" \
-            --parameters commands='
-              set -e
-              cd /home/ubuntu
-              if [ ! -d "flexdeskBackend" ]; then
-                git clone https://github.com/VolttechAfrica/flexdeskv2.git flexdeskBackend
-              fi
-              cd flexdeskBackend
-              git reset --hard
-              git pull origin master
-              echo ${{ env.ENV_CONTENT }} | base64 -d > .env
-              npm install
-              npm run build
-              npm install -g pm2
-              npm run restart || npm run start
-            ' \
-            --output text
+            aws ssm send-command \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --document-name "AWS-RunShellScript" \
+              --comment "Deploy Flexdesk app via deploy.sh using PM2" \
+              --parameters commands='
+                curl -o /home/ubuntu/deploy.sh https://raw.githubusercontent.com/VolttechAfrica/flexdeskv2/master/scripts/deploy.sh
+                chmod +x /home/ubuntu/deploy.sh
+                /home/ubuntu/deploy.sh "${{ env.ENV_CONTENT }}"
+              ' \
+              --output text
         
