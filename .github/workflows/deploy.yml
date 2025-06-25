@@ -52,6 +52,7 @@ jobs:
           DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
           DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
           DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
+          PORT=8000
           EOF
 
       - name: Install Docker Compose

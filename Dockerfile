@@ -38,7 +38,6 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 COPY . .
 
-RUN apt-get update -y && apt-get install -y openssl
 RUN npm install -g pm2
 RUN npx prisma generate --no-engine
 RUN npm run build
