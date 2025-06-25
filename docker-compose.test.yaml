@@ -1,4 +1,31 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: flexdesk-postgres-test
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - flexdesk-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: flexdesk-redis-test
+    ports:
+      - "6379:6379"
+    networks:
+      - flexdesk-network
+
   app:
     build:
       context: .
