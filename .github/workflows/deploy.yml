@@ -27,18 +27,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Build
-        run: npm run build
-      - name: Install pm2
-        run: npm install -g pm2
-
-      - name: Lint, test or type-check (optional)
-        run: |
-          echo "Add lint/test/build steps here"
-          # npm run lint
-          # npm run test
-
       - name: Create .env file
         run: |
           cat <<EOF > .env
@@ -63,10 +51,18 @@ jobs:
           ENV=production
           EOF
 
-      - name: Start test server
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+          docker-compose --version
+
+      - name: Start Docker Compose services for testing
         run: |
           cp .env .env.test
-          npm run start
+          docker-compose up -d --build
+  
+  
 
       - name: Run health check
         run: |
@@ -75,21 +71,19 @@ jobs:
             RESPONSE=$(curl -s http://localhost:8000/api/v2/health || echo '{"status":"error"}')
             if echo "$RESPONSE" | grep -q '"status":"ok ✅"'; then
               echo "App is healthy!"
-              npm run status
               exit 0
             fi
             echo "Health check failed (response: $RESPONSE). Retrying in 5s..."
             sleep 5
           done
           echo "Service failed health check after 30 attempts."
-          npm run logs
+          docker-compose logs
           exit 1
 
       - name: Shut down Docker Compose
         if: always()
         run: |
-          npm run stop
-          npm run delete
+          docker-compose down --volumes --remove-orphans
 
   # ------------------ CD JOB ------------------
   cd:
