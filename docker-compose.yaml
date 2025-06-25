@@ -57,8 +57,6 @@ services:
     environment:
       - DD_API_KEY=${DATADOG_API_KEY}
       - DD_APP_KEY=${DATADOG_APP_KEY}
-    depends_on:
-      - app
     networks:
       - flexdesk-network
     restart: on-failure:3
