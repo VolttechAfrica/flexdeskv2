@@ -36,7 +36,7 @@ export default fp(async (fastify) => {
 
       
       const roleId = await redis.get(`ROLE:${userId}`);
-      if(!roleId) throw new UserError(HttpStatusCode.Unauthorized, 'Unauthorized request, invalid user');
+      if(!roleId || typeof roleId !== 'string') throw new UserError(HttpStatusCode.Unauthorized, 'Unauthorized request, invalid user');
       
       const userContext = await authorizationService.authorizeUser(token, userId, roleId);
       if(!userContext.status) throw new TokenExpiredError(HttpStatusCode.Unauthorized, 'Unauthorized request, please login again');
@@ -46,8 +46,8 @@ export default fp(async (fastify) => {
       request.user = {
         token: userContext?.token || '',
         id: userId,
-        roleId: roleId,
-        permissions: permissions,
+        roleId: roleId as string,
+        permissions: Array.isArray(permissions) ? permissions : [],
       } 
 
     } catch (err: any) {

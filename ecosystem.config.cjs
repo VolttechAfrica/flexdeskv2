@@ -11,10 +11,10 @@ module.exports = {
       env_production: {
         NODE_ENV: "production"
       },
-      output: "./logs/out.log",
-      error: "./logs/error.log",
-      merge_logs: true,
-      time: true
+      // output: "./logs/out.log",
+      // error: "./logs/error.log",
+      // merge_logs: true,
+      // time: true
     }
   ]
 };

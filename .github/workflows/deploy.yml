@@ -1,0 +1,181 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  # ------------------ CI JOB ------------------
+  ci:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+      - name: Install pm2
+        run: npm install -g pm2
+
+      - name: Lint, test or type-check (optional)
+        run: |
+          echo "Add lint/test/build steps here"
+          # npm run lint
+          # npm run test
+
+      - name: Create .env file
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_USER=${{ secrets.REDIS_USER }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
+          DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
+          PORT=8000
+          NODE_ENV=production
+          NODE_NO_WARNINGS=1
+          ENV=production
+          EOF
+
+      - name: Start test server
+        run: |
+          cp .env .env.test
+          npm run start
+
+      - name: Run health check
+        run: |
+          echo "Waiting for app to be healthy..."
+          for i in {1..30}; do
+            RESPONSE=$(curl -s http://localhost:8000/api/v2/health || echo '{"status":"error"}')
+            if echo "$RESPONSE" | grep -q '"status":"ok ✅"'; then
+              echo "App is healthy!"
+              npm run status
+              exit 0
+            fi
+            echo "Health check failed (response: $RESPONSE). Retrying in 5s..."
+            sleep 5
+          done
+          echo "Service failed health check after 30 attempts."
+          npm run logs
+          exit 1
+
+      - name: Shut down Docker Compose
+        if: always()
+        run: |
+          npm run stop
+          npm run delete
+
+  # ------------------ CD JOB ------------------
+  cd:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate .env file
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+          JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+          REDIS_HOST=${{ secrets.REDIS_HOST }}
+          REDIS_PORT=${{ secrets.REDIS_PORT }}
+          REDIS_USER=${{ secrets.REDIS_USER }}
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+          EMAIL_PORT=${{ secrets.EMAIL_PORT }}
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APP_KEY=${{ secrets.DATADOG_APP_KEY }}
+          DD_AGENT_PORT=${{ secrets.DD_AGENT_PORT }}
+          PORT=8000
+          NODE_ENV=production
+          NODE_NO_WARNINGS=1
+          ENV=production
+          EOF
+
+      - name: Encode .env file to base64
+        id: env_base64
+        run: |
+          ENV_CONTENT=$(base64 .env | tr -d '\n')
+          echo "ENV_CONTENT=$ENV_CONTENT" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: africa-west-1
+
+      - name: Send .env & Deploy via SSM to EC2
+        run: |
+            aws ssm send-command \
+              --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
+              --document-name "AWS-RunShellScript" \
+              --comment "Deploy Flexdesk app without Docker using PM2" \
+              --parameters commands='
+                set -e
+        
+                cd /home/ubuntu
+        
+                # Clone repo if missing
+                if [ ! -d "flexdeskBackend" ]; then
+                  git clone https://github.com/VolttechAfrica/flexdeskv2.git flexdeskBackend
+                fi
+        
+                cd flexdeskBackend
+        
+                # Pull latest code
+                git reset --hard
+                git pull origin master
+        
+                # Update .env file
+                echo ${{ env.ENV_CONTENT }} | base64 -d > .env
+        
+                # Install dependencies
+                npm install
+
+                # Build
+                npm run build
+
+                # Install pm2
+                npm install -g pm2
+        
+                # Restart app using PM2
+                npm run restart || npm run start
+              ' \
+              --output text
+        

@@ -30,16 +30,23 @@ CMD ["npm", "run", "dev"]
 FROM base AS production
 
 RUN npm cache clean --force
+RUN apt-get update -y && apt-get install -y openssl
+# Install all dependencies (including dev) for build
 RUN --mount=type=bind,source=package.json,target=package.json \
     --mount=type=bind,source=package-lock.json,target=package-lock.json \
     --mount=type=cache,target=/root/.npm \
-    npm ci --only=production --loglevel verbose
+    npm ci --include=dev --loglevel verbose
 
 COPY . .
+
+RUN npm install -g pm2
 RUN npx prisma generate --no-engine
-RUN npm cache clean --force
 RUN npm run build
 
+# Remove dev dependencies after build
+RUN npm prune --production
+
+RUN npm cache clean --force
 ENV NODE_ENV=production
 USER node
 
