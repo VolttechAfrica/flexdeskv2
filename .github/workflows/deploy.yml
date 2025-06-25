@@ -146,7 +146,7 @@ jobs:
               --instance-ids ${{ secrets.EC2_INSTANCE_ID }} \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy Flexdesk app via deploy.sh using PM2" \
-              --parameters '{"commands":["curl -o /home/ubuntu/deploy.sh https://raw.githubusercontent.com/VolttechAfrica/flexdeskv2/master/scripts/deploy.sh","chmod +x /home/ubuntu/deploy.sh","/home/ubuntu/deploy.sh \"${{ env.ENV_CONTENT }}\""]}' \
+              --parameters '{"commands":["curl -o /home/ubuntu/deploy.sh https://raw.githubusercontent.com/VolttechAfrica/flexdeskv2/master/deploy.sh","chmod +x /home/ubuntu/deploy.sh","/home/ubuntu/deploy.sh \"${{ env.ENV_CONTENT }}\""]}' \
               --output text
         
         
