@@ -55,6 +55,25 @@ services:
         max-file: "3"
 
 
+  dashboard-publisher:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_APP_KEY=${DATADOG_APP_KEY}
+    depends_on:
+      - app
+    networks:
+      - flexdesk-network
+    restart: on-failure:3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://api.datadoghq.eu/api/v1/validate"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
 networks:
   flexdesk-network:
     driver: bridge
