@@ -62,12 +62,13 @@ export const buildServer = async () => {
   app.register(nodemailerPlugin);
   app.register(helmet);
   app.register(cors, {
-    origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
+    origin: ["*"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   });
   app.register(sensible);
 
+  
   // Set error handlers before registering metrics plugin
   app.setNotFoundHandler((request, reply) => {
     reply.notFound("The requested resource was not found.");
