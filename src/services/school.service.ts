@@ -15,10 +15,10 @@ class SchoolService {
     }
 
     async getSchoolInfo(schoolId: string): Promise<any> {
-        const school = await this.redis.getInstance(`SCHOOL:${schoolId}`);
+        const school = await this.redis.get(`SCHOOL:${schoolId}`);
         if (!school) {
             const school = await this.schoolRepositories.getSchoolInfo(schoolId);
-            await this.redis.setInstance({
+            await this.redis.set({
                 key: `SCHOOL:${schoolId}`,
                 value: school,
                 ttl: 7 * 24 * 60 * 60,

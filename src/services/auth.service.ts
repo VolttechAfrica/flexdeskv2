@@ -57,11 +57,12 @@ class AuthService {
         const permissions = findUser?.role?.RolePermission?.map((rp: { permission: { action: string } }) => rp.permission.action) || [];
       
          // Save the permissions to the redis
-         await this.redis.setInstance({
+         await this.redis.set({
             key: `PERMISSION:${findUser?.id}`,
             value: permissions,
             ttl: 7 * 24 * 60 * 60, // 7 day
         });
+
 
         // Save the role id to the redis
         await this.redis.set({
@@ -70,8 +71,9 @@ class AuthService {
             ttl: 7 * 24 * 60 * 60,
         });
 
+        console.log(findUser?.school);
         // save school information to the redis
-        await this.redis.setInstance({
+        await this.redis.set({
             key: `SCHOOL:${findUser?.schoolId}`,
             value: findUser?.school,
             ttl: 7 * 24 * 60 * 60,
