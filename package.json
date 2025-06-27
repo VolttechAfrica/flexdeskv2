@@ -32,7 +32,7 @@
     "@flextest/apperrorhandler": "^1.0.1",
     "@flextest/logger": "^1.0.4",
     "@flextest/ratelimit": "^1.0.0",
-    "@prisma/client": "^6.8.2",
+    "@prisma/client": "^6.10.1",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
@@ -50,13 +50,13 @@
     "nodemailer": "^6.10.1",
     "pg": "^8.16.0",
     "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0",
-    "prisma": "^6.8.2"
+    "pino-pretty": "^13.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.21",
     "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.10",
+    "prisma": "^6.10.1",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"

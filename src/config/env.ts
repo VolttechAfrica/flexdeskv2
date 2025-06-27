@@ -6,10 +6,7 @@ const env = {
   port: parseInt(process.env.PORT || '8000', 10),
   env: process.env.NODE_ENV || 'development',
   db: {
-    connectionString:
-      process.env.NODE_ENV === 'production'
-        ? process.env.DB_CONNECTION_STRING_PROD
-        : process.env.DB_CONNECTION_STRING_DEV
+    connectionString: process.env.DB_CONNECTION_STRING
   },
 
   jwt: {
