@@ -26,8 +26,12 @@ export const recordMetric = async (
   tags: string[] = []
 ) => {
   try {
-    statsd.gauge(name, value, tags);
+    // Use setImmediate to ensure this doesn't block the main thread
+    setImmediate(() => {
+      statsd.gauge(name, value, tags);
+    });
   } catch (error) {
+    // Silently fail - don't let metrics interfere with the main application
     console.error('Failed to submit metric:', error);
   }
 };

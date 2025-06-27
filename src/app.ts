@@ -68,23 +68,7 @@ export const buildServer = async () => {
   });
   app.register(sensible);
 
-  
-  // Set error handlers before registering metrics plugin
-  app.setNotFoundHandler((request, reply) => {
-    reply.notFound("The requested resource was not found.");
-  });
-
-  app.setErrorHandler((error, request, reply) => {
-    app.log.error(error);
-    reply.status(error.statusCode || 500).send({
-      error: error.name || 'Internal Server Error',
-      message: error.message || 'An unexpected error occurred',
-    });
-  });
-
-  app.register(metricsPlugin);
-  app.register(monitoringPlugin);
-
+  // Register rate limiting before error handlers
   app.register(rateLimit, {
     max: 50,
     timeWindow: "1 minute",
@@ -98,6 +82,57 @@ export const buildServer = async () => {
       };
     },
   });
+
+  // Set error handlers before registering metrics plugin
+  app.setNotFoundHandler((request, reply) => {
+    reply.notFound("The requested resource was not found.");
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    app.log.error('Error handler called:', {
+      error: error.message,
+      code: error.code,
+      statusCode: error.statusCode,
+      replySent: reply.sent,
+      url: request.url,
+      method: request.method
+    });
+    
+    // Check if response has already been sent
+    if (reply.sent) {
+      app.log.warn('Response already sent, skipping error handler');
+      return;
+    }
+    
+    // Check if this is a Fastify internal error that we shouldn't handle
+    if (error.code === 'FST_ERR_SEND_INSIDE_ONERR') {
+      app.log.error('Fastify internal error detected, not sending response');
+      return;
+    }
+    
+    try {
+      // Handle different types of errors
+      if (error.statusCode) {
+        return reply.status(error.statusCode).send({
+          status: false,
+          error: error.name || 'Error',
+          message: error.message || 'An error occurred',
+        });
+      }
+      
+      // Default error response
+      reply.status(500).send({
+        status: false,
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
+      });
+    } catch (sendError) {
+      app.log.error('Error sending error response:', sendError);
+    }
+  });
+
+  app.register(metricsPlugin);
+  app.register(monitoringPlugin);
 
   // Register all routes
   app.register(healthRoutes, { prefix: "/api/v2" });

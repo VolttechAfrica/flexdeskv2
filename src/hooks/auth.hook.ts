@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { HttpStatusCode } from "axios";
+import { UserError } from "../utils/errorhandler.js";
 
 export default async function authorize(permissionName: string){
   return async function (request: FastifyRequest, reply: FastifyReply) {
@@ -10,10 +11,11 @@ export default async function authorize(permissionName: string){
       const hasPermission = permissions.includes(permissionName) || permissions.includes("assign_superadmin");
 
       if (!hasPermission) {
-        return reply.code(HttpStatusCode.Forbidden).send({ message: "Forbidden: Permission denied" });
+        throw new UserError(HttpStatusCode.Forbidden, "Forbidden: Permission denied");
       }
-    } catch {
-      return reply.code(HttpStatusCode.Unauthorized).send({ message: "Unauthorized" });
+    } catch (err: any) {
+      // Re-throw the error to let Fastify's error handler manage it
+      throw err;
     }
   };
 }
