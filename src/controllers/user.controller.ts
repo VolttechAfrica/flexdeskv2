@@ -22,10 +22,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 
@@ -38,10 +35,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 
@@ -52,10 +46,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 
@@ -68,10 +59,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 
@@ -83,10 +71,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 
@@ -97,10 +82,7 @@ class UserController {
             result.token = request.user.token;
             return reply.status(HttpStatusCode.Ok).send(result);
         } catch (error: any) {
-            return reply.status(HttpStatusCode.InternalServerError).send({
-                status: false,
-                message: error?.message,
-            });
+            throw error;
         }
     }
 }

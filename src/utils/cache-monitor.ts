@@ -38,25 +38,25 @@ export class CacheMonitor {
         const result = await originalGet.apply(this.redis, args);
         const duration = Date.now() - start;
 
-        // Record cache hit/miss
-        await recordMetric(
+        // Record cache hit/miss (fire and forget)
+        recordMetric(
           result ? Metrics.CACHE_HIT : Metrics.CACHE_MISS,
           1,
           [`key:${args[0]}`]
-        );
+        ).catch(() => {}); // Ignore errors
 
-        // Record operation duration
-        await recordMetric('cache.operation.duration', duration, [
+        // Record operation duration (fire and forget)
+        recordMetric('cache.operation.duration', duration, [
           `operation:get`,
           `key:${args[0]}`,
-        ]);
+        ]).catch(() => {}); // Ignore errors
 
         return result;
       } catch (error) {
-        await recordMetric('cache.error', 1, [
+        recordMetric('cache.error', 1, [
           `operation:get`,
           `error:${error instanceof Error ? error.name : 'unknown'}`,
-        ]);
+        ]).catch(() => {}); // Ignore errors
         throw error instanceof Error ? error : new Error(String(error));
       }
     };
@@ -67,7 +67,7 @@ export class CacheMonitor {
         const info = await this.redis.info('memory');
         const usedMemory = parseInt(info.match(/used_memory:(\d+)/)?.[1] || '0');
         
-        await recordMetric('cache.memory.used', usedMemory, []);
+        recordMetric('cache.memory.used', usedMemory, []).catch(() => {}); // Ignore errors
       } catch (error) {
         this.fastify.log.error('Failed to monitor Redis memory:', error);
       }

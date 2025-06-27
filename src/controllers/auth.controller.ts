@@ -40,10 +40,7 @@ class AuthController {
       return reply.status(HttpStatusCode.Ok).send(loginData);
     } catch (error: any) {
       console.log(error);
-      return reply.status(HttpStatusCode.Unauthorized).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 
@@ -72,10 +69,7 @@ class AuthController {
       );
       return reply.status(HttpStatusCode.Ok).send(registerData);
     } catch (error: any) {
-      return reply.status(HttpStatusCode.InternalServerError).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 
@@ -89,10 +83,7 @@ class AuthController {
       const logoutData = await this.authService.logout(request.user.id as string);
       return reply.status(HttpStatusCode.Ok).send(logoutData);
     } catch (error: any) {
-      return reply.status(HttpStatusCode.InternalServerError).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 }

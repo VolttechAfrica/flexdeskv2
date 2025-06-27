@@ -60,17 +60,7 @@ export default class TaskController {
   }
 
   private handleError(error: unknown, reply: FastifyReply) {
-    if (error instanceof UserError) {
-      return reply.status(error.statusCode).send({
-        status: false,
-        message: error.message,
-      });
-    }
-
-    return reply.status(HttpStatusCode.InternalServerError).send({
-      status: false,
-      message: "An unexpected error occurred",
-    });
+    throw error;
   }
 
   async createTask(

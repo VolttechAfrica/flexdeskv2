@@ -20,30 +20,27 @@ const metricsPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.addHook('onResponse', async (request, reply) => {
     const duration = Date.now() - request.metrics.startTime;
     
-    // Record request metrics
-    await recordMetric(Metrics.API_REQUEST, 1, [
+    // Record request metrics (fire and forget)
+    recordMetric(Metrics.API_REQUEST, 1, [
       `method:${request.method}`,
       `path:${request.routeOptions.url}`,
       `status:${reply.statusCode}`,
-    ]);
+    ]).catch(() => {}); // Ignore errors
 
-    // Record response time
-    await recordMetric('api.response_time', duration, [
+    // Record response time (fire and forget)
+    recordMetric('api.response_time', duration, [
       `method:${request.method}`,
       `path:${request.routeOptions.url}`,
-    ]);
-  });
+    ]).catch(() => {}); // Ignore errors
 
-  fastify.addHook('onError', (request, reply, error) => {
-    // Fire and forget - don't await or use async to avoid response conflicts
-    recordMetric(Metrics.API_ERROR, 1, [
-      `method:${request.method}`,
-      `path:${request.routeOptions.url}`,
-      `error:${error.name}`,
-    ]).catch((metricError) => {
-      // Log the error but don't let it interfere with the main error handling
-      fastify.log.error('Failed to record error metric:', metricError);
-    });
+    // Record error metrics if status code indicates an error (fire and forget)
+    if (reply.statusCode >= 400) {
+      recordMetric(Metrics.API_ERROR, 1, [
+        `method:${request.method}`,
+        `path:${request.routeOptions.url}`,
+        `status:${reply.statusCode}`,
+      ]).catch(() => {}); // Ignore errors
+    }
   });
 };
 

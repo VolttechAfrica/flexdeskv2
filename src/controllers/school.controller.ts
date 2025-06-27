@@ -30,10 +30,7 @@ class SchoolController {
       term.token = request.user.token;
       return reply.status(HttpStatusCode.Ok).send(term);
     } catch (error: any) {
-      return reply.status(HttpStatusCode.InternalServerError).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 
@@ -48,10 +45,7 @@ class SchoolController {
       const terms = await this.schoolService.getAllTerms(schoolId);
       return reply.status(HttpStatusCode.Ok).send(terms);
     } catch (error: any) {
-      return reply.status(HttpStatusCode.InternalServerError).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 
@@ -76,10 +70,7 @@ class SchoolController {
       );
       return reply.status(HttpStatusCode.Ok).send(term);
     } catch (error: any) {
-      return reply.status(HttpStatusCode.InternalServerError).send({
-        status: false,
-        message: error?.message,
-      });
+      throw error;
     }
   }
 }

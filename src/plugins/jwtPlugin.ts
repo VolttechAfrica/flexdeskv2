@@ -51,7 +51,7 @@ export default fp(async (fastify) => {
       } 
 
     } catch (err: any) {
-      reply.status(HttpStatusCode.Unauthorized).send({ message: err?.message || 'Unauthorized', error: err.name });
+      throw err;
     }
   });
 

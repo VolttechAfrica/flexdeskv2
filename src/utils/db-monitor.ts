@@ -22,27 +22,27 @@ export default class DatabaseMonitor {
         const result = await next(params);
         const duration = Date.now() - start;
 
-        // Record successful query metrics
-        await recordMetric(Metrics.DB_QUERY, 1, [
+        // Record successful query metrics (fire and forget)
+        recordMetric(Metrics.DB_QUERY, 1, [
           `model:${params.model}`,
           `action:${params.action}`,
           `success:true`,
-        ]);
+        ]).catch(() => {}); // Ignore errors
 
-        // Record query duration
-        await recordMetric('db.query.duration', duration, [
+        // Record query duration (fire and forget)
+        recordMetric('db.query.duration', duration, [
           `model:${params.model}`,
           `action:${params.action}`,
-        ]);
+        ]).catch(() => {}); // Ignore errors
 
         return result;
       } catch (error) {
-        // Record failed query metrics
-        await recordMetric(Metrics.DB_ERROR, 1, [
+        // Record failed query metrics (fire and forget)
+        recordMetric(Metrics.DB_ERROR, 1, [
           `model:${params.model}`,
           `action:${params.action}`,
           `error:${error instanceof Error ? error.name : 'unknown'}`,
-        ]);
+        ]).catch(() => {}); // Ignore errors
 
         throw error instanceof Error ? error : new Error(String(error));
       }
