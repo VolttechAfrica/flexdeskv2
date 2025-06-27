@@ -1,9 +1,7 @@
 name: Continuous Deployment
-
 on:
   push:
     branches: [master]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -32,7 +30,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t volttechafrica/flexdeskbackend:latest .
+        run: docker build -t volttechafrica/flexdeskbackend:latest --no-cache .
 
       - name: Push Docker image to Docker Hub
         run: docker push volttechafrica/flexdeskbackend:latest

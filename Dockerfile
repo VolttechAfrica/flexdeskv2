@@ -39,11 +39,11 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 COPY . .
 
-RUN npx prisma generate --no-engine
+RUN npx prisma generate
 RUN npm run build
 
 # Remove dev dependencies after build
-RUN npm prune --production
+# RUN npm prune --dev
 RUN npm cache clean --force
 ENV NODE_ENV=production
 USER node
