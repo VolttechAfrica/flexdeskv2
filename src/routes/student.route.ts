@@ -38,6 +38,7 @@ async function studentRoutes(app: FastifyInstance) {
                 type: "object",
                 properties: {
                     schoolId: { type: "string" },
+                    userId: { type: "string" },
                     page: { type: "string", pattern: "^[1-9]\\d*$" },
                     limit: { type: "string", pattern: "^[1-9]\\d*$" },
                     status: { 

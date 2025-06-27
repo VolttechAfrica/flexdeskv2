@@ -30,6 +30,7 @@ class SchoolController {
       term.token = request.user.token;
       return reply.status(HttpStatusCode.Ok).send(term);
     } catch (error: any) {
+      console.log(error);
       throw error;
     }
   }
@@ -45,6 +46,7 @@ class SchoolController {
       const terms = await this.schoolService.getAllTerms(schoolId);
       return reply.status(HttpStatusCode.Ok).send(terms);
     } catch (error: any) {
+      console.log(error);
       throw error;
     }
   }
@@ -70,6 +72,7 @@ class SchoolController {
       );
       return reply.status(HttpStatusCode.Ok).send(term);
     } catch (error: any) {
+      console.log(error);
       throw error;
     }
   }

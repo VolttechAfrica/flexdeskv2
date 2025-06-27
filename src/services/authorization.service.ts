@@ -97,15 +97,17 @@ class AuthorizationService {
     async authorizeUser(token: string, id: string, role: string): Promise<AuthResponse> {
         const startTime = Date.now();
         try {
+            if(!token || !id || !role) throw new AuthError(HttpStatusCode.Unauthorized, 'Missing parameters'); 
             const decoded = await this.verifyToken(token.replace('Bearer ', ''));
             
-            if (decoded.id !== id || decoded.role !== role) {
+            if (decoded.id !== id || decoded.role !== role.toString()) {
                 throw new AuthError(HttpStatusCode.Unauthorized, 'Unauthorized access');
             }
 
             await this.dbMonitor.trackQuery('authorizeUser', Date.now() - startTime);
             return { status: true, token };
         } catch (error: any) {
+            console.log(error);
             await this.dbMonitor.trackError(error);
             
             if (error instanceof TokenExpiredError) {
