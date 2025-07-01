@@ -44,6 +44,16 @@ class SchoolService {
     }
 
     async createTerm(data: any): Promise<any> {
+
+        const termMap: Record<string, number> = {
+            "First Term": 1,
+            "Second Term": 2,
+            "Third Term": 3,
+          };
+        const { name } = data
+        data.term = termMap[name] || 0;
+
+        if(data.term === 0) throw new UserError(HttpStatusCode.BadRequest, "Invalid term name, please try again");
         const verifySchool = await this.getSchoolInfo(data.schoolId);
         if (!verifySchool) throw new UserError(HttpStatusCode.NotFound, "Invalid schoolId, please try again");
         const term = await this.schoolRepositories.createTerm(data);
