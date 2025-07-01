@@ -57,6 +57,12 @@ class SchoolService {
         return term;
     }
 
+    async updateTerm(schoolId: string, termId: string, name: string, startDate: string, endDate: string, year: string): Promise<any> {
+        const verifySchool = await this.getSchoolInfo(schoolId);
+        if (!verifySchool) throw new UserError(HttpStatusCode.NotFound, "Invalid schoolId, please try again");
+        const term = await this.schoolRepositories.updateTerm(termId, name, startDate, endDate, year);
+        return term;
+    }
 }
 
 

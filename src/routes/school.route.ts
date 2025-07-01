@@ -58,6 +58,27 @@ async function schoolRoutes(app: FastifyInstance) {
     },
     handler: schoolController.makeTermActive.bind(schoolController),
   });
+
+  app.route({
+    method: "PUT",
+    url: "/term/update",
+    preHandler: [app.authenticate, registerAuthorization],
+    schema: {
+      body: {
+        type: "object",
+        properties: {
+          schoolId: { type: "string" },
+          termId: { type: "string" },
+          name: { type: "string" },
+          startDate: { type: "string" },
+          endDate: { type: "string" },
+          year: { type: "string" },
+        },
+        required: ["schoolId", "termId", "name", "startDate", "endDate", "year"],
+      },
+    },
+    handler: schoolController.updateTerm.bind(schoolController),
+  });
   }
 
 export default schoolRoutes;

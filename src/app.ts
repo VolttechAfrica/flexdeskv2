@@ -139,7 +139,7 @@ export const buildServer = async () => {
   app.register(authRoutes, { prefix: "/api/v2/auth" });
   app.register(userRoutes, { prefix: "/api/v2/user" });
   app.register(schoolRoutes, { prefix: "/api/v2/school" });
-  app.register(studentRoutes, { prefix: "/api/v2/students" });
+  app.register(studentRoutes, { prefix: "/api/v2/students" }); 
   app.register(taskRoutes, { prefix: "/api/v2" });
 
   
