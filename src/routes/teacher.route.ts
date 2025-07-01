@@ -8,7 +8,7 @@ async function teacherRoutes(app: FastifyInstance) {
 
   app.route({
     method: "GET",
-    url: "/",
+    url: "/active",
     preHandler: [app.authenticate, registerAuthorization],
     schema: {
       querystring: {
