@@ -4,6 +4,8 @@ import userRoutes from "./routes/user.route.js";
 import schoolRoutes from "./routes/school.route.js";
 import studentRoutes from "./routes/student.route.js";
 import taskRoutes from "./routes/task.routes.js";
+import teacherRoutes from "./routes/teacher.route.js";
+
 
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
@@ -141,7 +143,7 @@ export const buildServer = async () => {
   app.register(schoolRoutes, { prefix: "/api/v2/school" });
   app.register(studentRoutes, { prefix: "/api/v2/students" }); 
   app.register(taskRoutes, { prefix: "/api/v2" });
-
+  app.register(teacherRoutes, { prefix: "/api/v2/teachers" });
   
 
   app.get("/", async (request, reply) => {

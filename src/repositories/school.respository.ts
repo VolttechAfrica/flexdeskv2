@@ -1,8 +1,9 @@
 import prisma from "../model/prismaClient.js";
 import { PrismaClient, TermStatus } from "@prisma/client";
-import { DatabaseMonitor } from "../plugins/monitoring/database.js";
 import { FastifyInstance } from "fastify";
 import { BaseRepository } from "./base.repository.js";
+import { UserError } from "../utils/errorhandler.js";
+import { HttpStatusCode } from "axios";
 
 class SchoolRepository extends BaseRepository {
   constructor(prisma: PrismaClient, fastify: FastifyInstance) {
@@ -49,6 +50,11 @@ class SchoolRepository extends BaseRepository {
   }
 
   async createTerm(data: any) {
+    //check if term already exists
+    const term = await this.prisma.term.findFirst({
+      where: { schoolId: data.schoolId, name: data.name, year: data.year, term: data.term },
+    });
+    if (term) throw new UserError(HttpStatusCode.BadRequest, "Term already exists");
     return this.executeQuery('createTerm', 'term', async () => {
       const term = await this.prisma.term.create({
         data,
