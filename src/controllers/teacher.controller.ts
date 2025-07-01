@@ -45,6 +45,7 @@ class TeacherController {
             const queryParams = this.parseQueryParams(request.query as TeacherQueryParams);
             const teachers = await this.teacherService.getAllTeachers(queryParams.schoolId, queryParams);
             teachers.token = request.user.token;
+            teachers.total = teachers.length;
             return reply.status(HttpStatusCode.Ok).send(teachers);
         } catch (error: any) {
             console.log(error);
