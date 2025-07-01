@@ -69,6 +69,18 @@ class SchoolRepository extends BaseRepository {
       return result;
     });
   }
+
+  async updateTerm(termId: string, name: string, startDate: string, endDate: string, year: string) {
+    return this.executeQuery('updateTerm', 'term', async () => {
+      const term = await this.prisma.term.update({
+        where: { id: termId },
+        data: { name, startDate, endDate, year },
+      });
+      await this.invalidateCache(`term:current:${term.schoolId}`);
+      await this.invalidateCache(`terms:all:${term.schoolId}`);
+      return term;
+    });
+  }
 }
 
 export const createSchoolRepository = (fastify: FastifyInstance) => {

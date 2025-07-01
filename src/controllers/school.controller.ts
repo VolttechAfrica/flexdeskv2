@@ -76,6 +76,35 @@ class SchoolController {
       throw error;
     }
   }
+
+  async updateTerm(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      if (!request.user)
+        throw new UserError(
+          HttpStatusCode.Unauthorized,
+          responseMessage.Unauthorized.message
+        );
+      const { schoolId, termId, name, startDate, endDate, year } = request.body as {
+        schoolId: string;
+        termId: string;
+        name: string;
+        startDate: string;
+        endDate: string;
+        year: string;
+      };
+      const term = await this.schoolService.updateTerm(schoolId, termId, name, startDate, endDate, year);
+      await this.userActivityService.createUserActivity(
+        request.user.id as string,
+        "Updated term",
+        request.ip,
+        request.headers["user-agent"] || ""
+      );
+      return reply.status(HttpStatusCode.Ok).send(term);
+    } catch (error: any) {
+      console.log(error);
+      throw error;
+    }
+  }
 }
 
 export default SchoolController;
