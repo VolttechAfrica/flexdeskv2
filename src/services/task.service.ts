@@ -2,7 +2,8 @@ import { TaskStatus, TaskPriority, TaskMemberRole, TaskMemberStatus } from "@pri
 import { FastifyInstance } from "fastify";
 import { UserError } from "../utils/errorhandler.js";
 import { HttpStatusCode } from "axios";
-import taskRepository from "../repositories/task.repository.js";
+import { taskRepository } from "../repositories/task.repository.js";
+
 
 interface CreateTaskDTO {
   name: string;
@@ -44,11 +45,11 @@ interface TaskFilters {
 }
 
 export default class TaskService {
-  private taskRepository: typeof taskRepository;
+  private taskRepository: ReturnType<typeof taskRepository>;
   private fastify: FastifyInstance;
 
   constructor(fastify: FastifyInstance) {
-    this.taskRepository = taskRepository;
+    this.taskRepository = taskRepository(fastify);
     this.fastify = fastify;
   }
 
