@@ -10,7 +10,6 @@ interface TaskQueryParams {
   startDate?: string;
   endDate?: string;
   role?: TaskMemberRole;
-  UserId: string;
 }
 
 interface TaskParams {
@@ -192,9 +191,8 @@ export default class TaskController {
   ) {
     try {
       const { schoolId } = request.params;
-      const { UserId, ...query } = request.query;
       const tasks = await this.taskService.getTasksBySchool(schoolId as string, {
-        ...query,
+        ...request.query,
         startDate: request.query.startDate ? new Date(request.query.startDate) : undefined,
         endDate: request.query.endDate ? new Date(request.query.endDate) : undefined,
       });

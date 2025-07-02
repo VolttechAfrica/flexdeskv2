@@ -42,6 +42,7 @@ interface TaskFilters {
   startDate?: Date;
   endDate?: Date;
   role?: TaskMemberRole;
+  UserId?: string;
 }
 
 export default class TaskService {
@@ -224,6 +225,7 @@ export default class TaskService {
 
   async getTasksBySchool(schoolId: string, filters?: TaskFilters) {
     try {
+      delete filters?.UserId;
       return await this.taskRepository.findTasksBySchool(schoolId, filters);
     } catch (error) {
       if (error instanceof UserError) {
