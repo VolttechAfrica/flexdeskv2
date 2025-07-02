@@ -247,7 +247,9 @@ export default async function taskRoutes(fastify: FastifyInstance) {
             startDate: { type: "string", format: "date-time" },
             endDate: { type: "string", format: "date-time" },
             role: { type: "string", enum: Object.values(TaskMemberRole) },
+            UserId: { type: "string" }
           },
+          required: ["UserId"],
         },
       },
     },
