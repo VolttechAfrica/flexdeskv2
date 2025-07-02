@@ -1,7 +1,5 @@
 import prisma from "../model/prismaClient.js";
 import { PrismaClient, Student, StudentStatus } from "@prisma/client";
-import { HttpStatusCode } from "axios";
-import { UserError } from "../utils/errorhandler.js";
 import { FastifyInstance } from "fastify";
 import { BaseRepository } from "./base.repository.js";
 

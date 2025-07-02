@@ -2,6 +2,8 @@ import { PrismaClient, TaskStatus, TaskPriority, TaskMemberRole, TaskMemberStatu
 import prisma from "../model/prismaClient.js";
 import { UserError } from "../utils/errorhandler.js";
 import { HttpStatusCode } from "axios";
+import { BaseRepository } from "./base.repository.js";
+import { FastifyInstance } from "fastify";
 
 interface CreateTaskData {
   name: string;
@@ -45,18 +47,19 @@ interface TaskFilters {
   role?: TaskMemberRole;
 }
 
-class TaskRepository {
-  private prisma: PrismaClient;
-
-  constructor(prisma: PrismaClient) {
-    this.prisma = prisma;
+class TaskRepository extends BaseRepository {
+  constructor(prisma: PrismaClient, fastify: FastifyInstance) {
+    super(prisma, fastify);
   }
 
   async createTask(data: CreateTaskData) {
     try {
-      return await this.prisma.task.create({
+      const createTask = await this.prisma.task.create({
         data,
       });
+      if(!createTask) throw new Error("Failed to create task");
+      await this.invalidateCache(`tasks:school:${data.schoolId}`);
+      return createTask;
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -67,9 +70,12 @@ class TaskRepository {
 
   async createTaskMembers(data: CreateTaskMemberData[]) {
     try {
-      return await this.prisma.taskMember.createMany({
+      const addTaskMembers = await this.prisma.taskMember.createMany({
         data,
       });
+      if(!addTaskMembers) throw new Error("Failed to create task members");
+      await this.invalidateCache(`task:members:${data[0].taskId}`);
+      return addTaskMembers;
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -80,12 +86,25 @@ class TaskRepository {
 
   async findTaskById(taskId: string) {
     try {
-      return await this.prisma.task.findUnique({
-        where: { id: taskId },
-        include: {
-          taskMembers: {
+      const cacheKey = `task:${taskId}`;
+      return this.withCache(cacheKey, 'findTaskById', () =>
+        this.executeQuery('findTaskById', 'task', async () =>
+          await this.prisma.task.findUnique({
+            where: { id: taskId },
             include: {
-              member: {
+              taskMembers: {
+                include: {
+                  member: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+              creator: {
                 select: {
                   id: true,
                   firstName: true,
@@ -94,17 +113,9 @@ class TaskRepository {
                 },
               },
             },
-          },
-          creator: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-        },
-      });
+          })
+        )
+      );
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -115,10 +126,13 @@ class TaskRepository {
 
   async updateTask(taskId: string, data: UpdateTaskData) {
     try {
-      return await this.prisma.task.update({
+      const updateTask = await this.prisma.task.update({
         where: { id: taskId },
         data,
       });
+      if(!updateTask) throw new Error("Failed to update task");
+      await this.invalidateCache(`task:${taskId}`);
+      return updateTask;
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -129,9 +143,12 @@ class TaskRepository {
 
   async deleteTask(taskId: string) {
     try {
-      return await this.prisma.task.delete({
+      const deleteTask = await this.prisma.task.delete({
         where: { id: taskId },
       });
+      if(!deleteTask) throw new Error("Failed to delete task");
+      await this.invalidateCache(`task:${taskId}`);
+      return deleteTask;
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -142,9 +159,13 @@ class TaskRepository {
 
   async createTaskMember(data: CreateTaskMemberData) {
     try {
-      return await this.prisma.taskMember.create({
+      const createTaskMember = await this.prisma.taskMember.create({
         data,
       });
+      if(!createTaskMember) throw new Error("Failed to create task member");
+      await this.invalidateCache(`task:member:${data.taskId}:${data.memberId}`);
+      await this.invalidateCache(`task:${data.taskId}`);
+      return createTaskMember;
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -171,15 +192,28 @@ class TaskRepository {
 
   async findTasksBySchool(schoolId: string, filters?: TaskFilters) {
     try {
-      return await this.prisma.task.findMany({
-        where: {
-          schoolId,
-          ...filters,
-        },
-        include: {
-          taskMembers: {
+      const cacheKey = `tasks:school:${schoolId}`;
+      return this.withCache(cacheKey, 'findTasksBySchool', () =>
+        this.executeQuery('findTasksBySchool', 'task', async () =>
+          await this.prisma.task.findMany({
+            where: {
+              schoolId,
+              ...filters,
+            },
             include: {
-              member: {
+              taskMembers: {
+                include: {
+                  member: {
+                    select: {
+                      id: true,
+                      firstName: true,
+                      lastName: true,
+                      email: true,
+                    },
+                  },
+                },
+              },
+              creator: {
                 select: {
                   id: true,
                   firstName: true,
@@ -188,20 +222,12 @@ class TaskRepository {
                 },
               },
             },
-          },
-          creator: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+            orderBy: {
+              createdAt: 'desc',
             },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+          })
+        )
+      );
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -258,6 +284,8 @@ class TaskRepository {
   }
 }
 
-const taskRepository = new TaskRepository(prisma);
 
-export default taskRepository;
+
+export const taskRepository = (fastify: FastifyInstance) => {
+  return new TaskRepository(prisma, fastify);
+};

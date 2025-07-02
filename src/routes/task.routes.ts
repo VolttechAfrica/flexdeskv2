@@ -222,6 +222,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
     taskController.updateTaskMemberStatus.bind(taskController)
   );
 
+  
   // Get tasks by school
   fastify.get<{
     Params: TaskParams;
