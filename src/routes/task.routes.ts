@@ -67,7 +67,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           type: "object",
           required: ["name", "startDate", "endDate", "schoolId", "termId", "description", "members", "priority", "notes", "createdBy", "tag"],
           properties: {
-            name: { type: "string", minLength: 10 },
+            name: { type: "string", minLength: 5 },
             description: { type: "string" },
             priority: { type: "string", enum: Object.values(TaskPriority) },
             startDate: { type: "string", format: "date-time" },
