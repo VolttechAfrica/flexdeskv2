@@ -91,10 +91,6 @@ class ClassRepository extends BaseRepository {
                                 },
                             },
                         },
-                        orderBy: {
-                            level: 'asc',
-                            name: 'asc',
-                        },
                     });
                 });
             });
