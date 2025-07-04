@@ -21,13 +21,15 @@ interface TaskParams {
 interface CreateTaskBody {
   name: string;
   description?: string;
-  priority?: TaskPriority;
+  priority: TaskPriority;
   startDate: string;
   endDate: string;
   schoolId: string;
   termId: string;
-  notes?: string;
-  members?: {
+  notes: string;
+  tag: string;
+  createdBy: string;
+  members: {
     memberId: string;
     role?: TaskMemberRole;
   }[];
@@ -69,10 +71,17 @@ export default class TaskController {
   ) {
     try {
       const task = await this.taskService.createTask({
-        ...request.body,
+        name: request.body.name,
+        description: request.body.description,
+        priority: request.body.priority || TaskPriority.MEDIUM,
         startDate: new Date(request.body.startDate),
         endDate: new Date(request.body.endDate),
-        createdBy: request.user.id as string,
+        schoolId: request.body.schoolId,
+        termId: request.body.termId,
+        createdBy: request.body.createdBy,
+        notes: request.body.notes,
+        tag: request.body.tag,
+        members: request.body.members
       });
 
       return reply.status(HttpStatusCode.Created).send({

@@ -4,6 +4,8 @@ import { UserError } from "../utils/errorhandler.js";
 import { HttpStatusCode } from "axios";
 import { BaseRepository } from "./base.repository.js";
 import { FastifyInstance } from "fastify";
+import { createTeacherRepository } from "./teacher.respository.js";
+import { createClassRepository } from "./class.repository.js";
 
 interface CreateTaskData {
   name: string;
@@ -15,12 +17,14 @@ interface CreateTaskData {
   termId: string;
   createdBy: string;
   notes?: string;
+  tag?: string;
+  members?: Members[];
 }
 
 interface CreateTaskMemberData {
   taskId: string;
   memberId: string;
-  role: TaskMemberRole;
+  role: TaskMemberRole
 }
 
 interface UpdateTaskData {
@@ -47,19 +51,133 @@ interface TaskFilters {
   role?: TaskMemberRole;
 }
 
+interface Members {
+  memberId: string;
+}
+
 class TaskRepository extends BaseRepository {
+  private teacherRepository: ReturnType<typeof createTeacherRepository>;
+  private classRepository: ReturnType<typeof createClassRepository>;
   constructor(prisma: PrismaClient, fastify: FastifyInstance) {
     super(prisma, fastify);
+    this.teacherRepository = createTeacherRepository(fastify);
+    this.classRepository = createClassRepository(fastify);
+  }
+
+  private defineClassRange(level: number): 'primary' | 'secondary' | 'unknown' {
+    if (level >= 1 && level <= 10) {
+      return 'primary';
+    } else if (level >= 11 && level <= 17) {
+      return 'secondary';
+    } else {
+      return 'unknown';
+    }
+  }
+
+  private async getTeacherClassRange(members: Members[]): Promise<('primary' | 'secondary' | 'unknown')[]> {
+    try {
+      const teacherIds = members.map((member) => member.memberId);
+      const teachers = await this.teacherRepository.getTeachersAssignedClassByMemberIds(teacherIds);
+      const classRanges = teachers.map((teacher) => this.defineClassRange(teacher?.class?.level || 0));
+      return classRanges;
+    } catch (error) {
+      throw new UserError(HttpStatusCode.InternalServerError, `Failed to get teacher class range: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  private determineClassRange(classRange: string): number[] {
+    if(classRange === 'primary'){
+      return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    } else if(classRange === 'secondary'){
+      return [11, 12, 13, 14, 15, 16, 17];
+    } else {
+      return [];
+    }
+  }
+
+  private async createTaskProcess(data: CreateTaskData) {
+    try {
+      // Wrap in transaction
+      const result = await this.prisma.$transaction(async (tx) => {
+        // Create the main task
+        const createTask = await tx.task.create({
+          data: {
+            name: data.name,
+            description: data.description,
+            priority: data.priority,
+            startDate: data.startDate,
+            endDate: data.endDate,
+            schoolId: data.schoolId,
+            termId: data.termId,
+            createdBy: data.createdBy,
+            notes: data.notes,
+          },
+        });
+
+        if (!createTask) {
+          throw new Error("Failed to create task");
+        }
+
+        // If tag is 'upload result' and members are provided, create subtasks
+        if (data.tag === 'Result upload' && data.members && data.members.length > 0) {
+          // Get teacher class ranges
+          const classRanges = await this.getTeacherClassRange(data.members);
+          
+          // Get unique class ranges
+          const uniqueClassRanges = [...new Set(classRanges)];
+          
+          // Get all classes within the determined ranges
+          const classRangesForQuery = uniqueClassRanges
+            .filter(range => range !== 'unknown')
+            .map(range => this.determineClassRange(range))
+            .flat();
+
+          if (classRangesForQuery.length > 0) {
+            const classes = await this.classRepository.getClassWithinRange(
+              classRangesForQuery.map(level => ({ level })),
+              data.schoolId
+            );
+
+            // Create subtasks for each class, class arm, and subject combination
+            const subtasks = [];
+            for (const classData of classes) {
+              for (const classArm of classData.classArms) {
+                for (const subject of classData.subjects) {
+                  const subtaskName = `${data.name} - ${classData.name} ${classArm.name} ${subject.name}`;
+                  const subtask = await tx.subTask.create({
+                    data: {
+                      name: subtaskName,
+                      taskId: createTask.id,
+                      notes: `Upload result for ${classData.name} ${classArm.name} ${subject.name}`,
+                      tagTo: `${classData.id}_${classArm.id}_${subject.id}`,
+                    },
+                  });
+                  subtasks.push(subtask);
+                }
+              }
+            }
+          }
+        }
+
+        return createTask;
+      });
+
+      // Invalidate cache
+      await this.invalidateCache(`tasks:school:${data.schoolId}`);
+      
+      return result;
+    } catch (error) {
+      throw new UserError(
+        HttpStatusCode.InternalServerError,
+        `Failed to create task process: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
   }
 
   async createTask(data: CreateTaskData) {
     try {
-      const createTask = await this.prisma.task.create({
-        data,
-      });
-      if(!createTask) throw new Error("Failed to create task");
-      await this.invalidateCache(`tasks:school:${data.schoolId}`);
-      return createTask;
+      // Use the process method for handling complex task creation
+      return await this.createTaskProcess(data);
     } catch (error) {
       throw new UserError(
         HttpStatusCode.InternalServerError,
@@ -283,8 +401,6 @@ class TaskRepository extends BaseRepository {
     }
   }
 }
-
-
 
 export const taskRepository = (fastify: FastifyInstance) => {
   return new TaskRepository(prisma, fastify);

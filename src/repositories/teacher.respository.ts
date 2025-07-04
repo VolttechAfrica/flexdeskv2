@@ -42,6 +42,47 @@ class TeacherRepository extends BaseRepository {
         );
     }
 
+    async getTeacherById(schoolId: string, teacherId: string) {
+        const cacheKey = `teachers:${teacherId}`;
+        return this.withCache(cacheKey, 'getTeacherById', () =>
+            this.executeQuery('getTeacherById', 'teacher', () =>
+                this.prisma.staff.findFirst({
+                    where: { id: teacherId, schoolId, roleId: '803' },
+                    include: {
+                        profile: true,
+                        qualifications: true,
+                        firstTimeLogin: true,
+                    },
+                })
+            )
+        );
+    }
+
+    // get the teacher that fit the memberId []
+    async getTeachersAssignedClassByMemberIds(memberIds: string[]) {
+        if (!memberIds || memberIds.length === 0) {
+            return [];
+        }
+        const cacheKey = `teachers:memberIds:${memberIds.join(',')}`;
+        return this.withCache(cacheKey, 'getTeachersAssignedClassByMemberIds', () =>
+            this.executeQuery('getTeachersAssignedClassByMemberIds', 'teacher', () =>
+                this.prisma.assignedClasses.findMany({
+                    where: {
+                        staffId: { in: memberIds },
+                    },
+                    include: {
+                        class: {
+                            select: {
+                                level: true,
+                                name: true,
+                            }
+                        }
+                    }
+                })
+            )
+        );
+    }
+
 
 
 }

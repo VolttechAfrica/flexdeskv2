@@ -15,6 +15,7 @@ interface CreateTaskDTO {
   termId: string;
   createdBy: string;
   notes?: string;
+  tag?: string;
   members?: {
     memberId: string;
     role?: TaskMemberRole;
@@ -45,6 +46,10 @@ interface TaskFilters {
   userId?: string;
 }
 
+interface MemberDTO {
+  memberId: string;
+}
+
 export default class TaskService {
   private taskRepository: ReturnType<typeof taskRepository>;
   private fastify: FastifyInstance;
@@ -57,38 +62,14 @@ export default class TaskService {
   async createTask(data: CreateTaskDTO) {
     try {
       // Validate dates
-      if (new Date(data.startDate) > new Date(data.endDate)) {
+      if (data.startDate > data.endDate) {
         throw new UserError(
           HttpStatusCode.BadRequest,
           "Start date must be before end date"
         );
       }
-
-      // Create the task
-      const task = await this.taskRepository.createTask({
-        name: data.name,
-        description: data.description,
-        priority: data.priority || TaskPriority.MEDIUM,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        schoolId: data.schoolId,
-        termId: data.termId,
-        createdBy: data.createdBy,
-        notes: data.notes,
-      });
-
-      // Add task members if provided
-      if (data.members && data.members.length > 0) {
-        await this.taskRepository.createTaskMembers(
-          data.members.map((member) => ({
-            taskId: task.id,
-            memberId: member.memberId,
-            role: member.role || TaskMemberRole.ASSIGNEE,
-          }))
-        );
-      }
-
-      return this.getTaskById(task.id);
+      const task = await this.taskRepository.createTask(data);
+      return task;
     } catch (error) {
       if (error instanceof UserError) {
         throw error;
