@@ -97,6 +97,29 @@ class TaskRepository extends BaseRepository {
 
   private async createTaskProcess(data: CreateTaskData) {
     try {
+      // Get class data outside transaction if needed for subtasks
+      let classes: any[] = [];
+      if (data.tag === 'Result upload' && data.members && data.members.length > 0) {
+        // Get teacher class ranges
+        const classRanges = await this.getTeacherClassRange(data.members);
+        
+        // Get unique class ranges
+        const uniqueClassRanges = [...new Set(classRanges)];
+        
+        // Get all classes within the determined ranges
+        const classRangesForQuery = uniqueClassRanges
+          .filter(range => range !== 'unknown')
+          .map(range => this.determineClassRange(range))
+          .flat();
+
+        if (classRangesForQuery.length > 0) {
+          classes = await this.classRepository.getClassWithinRange(
+            classRangesForQuery.map(level => ({ level })),
+            data.schoolId
+          );
+        }
+      }
+
       // Wrap in transaction
       const result = await this.prisma.$transaction(async (tx) => {
         // Create the main task
@@ -118,42 +141,23 @@ class TaskRepository extends BaseRepository {
           throw new Error("Failed to create task");
         }
 
-        // If tag is 'upload result' and members are provided, create subtasks
-        if (data.tag === 'Result upload' && data.members && data.members.length > 0) {
-          // Get teacher class ranges
-          const classRanges = await this.getTeacherClassRange(data.members);
-          
-          // Get unique class ranges
-          const uniqueClassRanges = [...new Set(classRanges)];
-          
-          // Get all classes within the determined ranges
-          const classRangesForQuery = uniqueClassRanges
-            .filter(range => range !== 'unknown')
-            .map(range => this.determineClassRange(range))
-            .flat();
-
-          if (classRangesForQuery.length > 0) {
-            const classes = await this.classRepository.getClassWithinRange(
-              classRangesForQuery.map(level => ({ level })),
-              data.schoolId
-            );
-
-            // Create subtasks for each class, class arm, and subject combination
-            const subtasks = [];
-            for (const classData of classes) {
-              for (const classArm of classData.classArms) {
-                for (const subject of classData.subjects) {
-                  const subtaskName = `${data.name} - ${classData.name} ${classArm.name} ${subject.name}`;
-                  const subtask = await tx.subTask.create({
-                    data: {
-                      name: subtaskName,
-                      taskId: createTask.id,
-                      notes: `Upload result for ${classData.name} ${classArm.name} ${subject.name}`,
-                      tagTo: `${classData.id}_${classArm.id}_${subject.id}`,
-                    },
-                  });
-                  subtasks.push(subtask);
-                }
+        // If tag is 'Result upload' and members are provided, create subtasks
+        if (data.tag === 'Result upload' && data.members && data.members.length > 0 && classes.length > 0) {
+          // Create subtasks for each class, class arm, and subject combination
+          const subtasks = [];
+          for (const classData of classes) {
+            for (const classArm of classData.classArms) {
+              for (const subject of classData.subjects) {
+                const subtaskName = `${data.name} - ${classData.name} ${classArm.name} ${subject.name}`;
+                const subtask = await tx.subTask.create({
+                  data: {
+                    name: subtaskName,
+                    taskId: createTask.id,
+                    notes: `Upload result for ${classData.name} ${classArm.name} ${subject.name}`,
+                    tagTo: `${classData.id}_${classArm.id}_${subject.id}`,
+                  },
+                });
+                subtasks.push(subtask);
               }
             }
           }
