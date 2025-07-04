@@ -19,13 +19,15 @@ interface TaskParams {
 interface CreateTaskBody {
   name: string;
   description?: string;
-  priority?: TaskPriority;
+  priority: TaskPriority;
   startDate: string;
   endDate: string;
   schoolId: string;
   termId: string;
-  notes?: string;
-  members?: {
+  notes: string;
+  tag: string;
+  createdBy: string;
+  members: {
     memberId: string;
     role?: TaskMemberRole;
   }[];
@@ -63,9 +65,9 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       schema: {
         body: {
           type: "object",
-          required: ["name", "startDate", "endDate", "schoolId", "termId"],
+          required: ["name", "startDate", "endDate", "schoolId", "termId", "description", "members", "priority", "notes", "createdBy", "tag"],
           properties: {
-            name: { type: "string", minLength: 1 },
+            name: { type: "string", minLength: 10 },
             description: { type: "string" },
             priority: { type: "string", enum: Object.values(TaskPriority) },
             startDate: { type: "string", format: "date-time" },
@@ -73,14 +75,15 @@ export default async function taskRoutes(fastify: FastifyInstance) {
             schoolId: { type: "string" },
             termId: { type: "string" },
             notes: { type: "string" },
+            tag: { type: "string" },
+            createdBy: { type: "string" },
             members: {
               type: "array",
               items: {
                 type: "object",
                 required: ["memberId"],
                 properties: {
-                  memberId: { type: "string" },
-                  role: { type: "string", enum: Object.values(TaskMemberRole) },
+                  memberId: { type: "string" }
                 },
               },
             },

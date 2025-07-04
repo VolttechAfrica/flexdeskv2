@@ -445,6 +445,7 @@ model Task {
   school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   term        Term         @relation(fields: [termId], references: [id], onDelete: Cascade)
   creator     Staff        @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  subtasks    SubTask[]
 
   @@index([name], name: "idx_task_name")
   @@index([startDate], name: "idx_task_start_date")
@@ -482,4 +483,21 @@ model TaskMember {
   @@index([memberId], name: "idx_task_member_staff")
   @@index([role], name: "idx_task_member_role")
   @@index([status], name: "idx_task_member_status")
+}
+
+model SubTask {
+  id          String       @id @default(uuid())
+  name        String       @db.VarChar(200)
+  status      TaskStatus   @default(PENDING)
+  taskId      String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  notes       String?      @db.VarChar(1000)
+  tagTo       String?      @db.VarChar(100)
+
+  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([name], name: "idx_subtask_name")
+  @@index([taskId], name: "idx_subtask_task")
+  @@index([status], name: "idx_subtask_status")
 }
