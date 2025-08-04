@@ -501,3 +501,44 @@ model SubTask {
   @@index([taskId], name: "idx_subtask_task")
   @@index([status], name: "idx_subtask_status")
 }
+
+enum SupportTicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SupportTicketStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum SupportTicketCategory {
+  TECHNICAL
+  BILLING
+  GENERAL
+  FEATURE_REQUEST
+  OTHER
+}
+
+model SupportTicket {
+  id        String   @id @default(uuid())
+  firstName String   @db.VarChar(100)
+  lastName  String   @db.VarChar(100)
+  email     String   @db.VarChar(100)
+  phone     String?   @db.VarChar(100)
+  message   String   @db.VarChar(1000)
+  priority  SupportTicketPriority @default(MEDIUM)
+  status    SupportTicketStatus @default(PENDING)
+  category  SupportTicketCategory @default(GENERAL)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email], name: "idx_support_ticket_email")
+  @@index([status], name: "idx_support_ticket_status")
+  @@index([priority], name: "idx_support_ticket_priority")
+  @@index([category], name: "idx_support_ticket_category")
+}
