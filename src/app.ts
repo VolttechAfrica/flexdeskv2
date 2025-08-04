@@ -5,6 +5,7 @@ import schoolRoutes from "./routes/school.route.js";
 import studentRoutes from "./routes/student.route.js";
 import taskRoutes from "./routes/task.routes.js";
 import teacherRoutes from "./routes/teacher.route.js";
+import supportTicketRoutes from "./routes/supportTicket.routes.js";
 
 
 import helmet from "@fastify/helmet";
@@ -144,7 +145,7 @@ export const buildServer = async () => {
   app.register(studentRoutes, { prefix: "/api/v2/students" }); 
   app.register(taskRoutes, { prefix: "/api/v2" });
   app.register(teacherRoutes, { prefix: "/api/v2/teachers" });
-  
+  app.register(supportTicketRoutes, { prefix: "/api/v2/support" });
 
   app.get("/", async (request, reply) => {
     reply.unauthorized();
