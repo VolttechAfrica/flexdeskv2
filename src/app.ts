@@ -1,5 +1,6 @@
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth.route.js";
+
 import userRoutes from "./routes/user.route.js";
 import schoolRoutes from "./routes/school.route.js";
 import studentRoutes from "./routes/student.route.js";

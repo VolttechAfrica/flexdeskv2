@@ -61,7 +61,6 @@ class SupportTicketController {
   ) {
     try {
       const { firstName, lastName, email, phone, message, priority, category } = request.body;
-
       const result = await this.supportTicketService.createSupportTicket({
         firstName,
         lastName,

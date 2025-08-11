@@ -1,0 +1,44 @@
+{
+  "name": "flexdesk-api-docs",
+  "version": "1.1.0",
+  "description": "API Documentation for FlexDesk School Management System",
+  "main": "openapi.yaml",
+  "scripts": {
+    "validate": "swagger-cli validate openapi.yaml",
+    "serve": "http-server -p 8080 -o",
+    "redoc": "redoc-cli serve openapi.yaml -p 8080",
+    "build:redoc": "redoc-cli bundle openapi.yaml -o redoc.html",
+    "build:swagger": "swagger-codegen generate -i openapi.yaml -l html2 -o swagger-ui",
+    "lint:yaml": "yamllint openapi.yaml"
+  },
+  "keywords": [
+    "api",
+    "documentation",
+    "openapi",
+    "swagger",
+    "school-management",
+    "flexdesk"
+  ],
+  "author": "FlexDesk Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "swagger-cli": "^4.0.4",
+    "http-server": "^14.1.1",
+    "redoc-cli": "^0.13.21",
+    "swagger-codegen": "^3.0.55",
+    "js-yaml": "^4.1.0",
+    "ajv": "^8.12.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flexdesk/api-docs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flexdesk/api-docs/issues"
+  },
+  "homepage": "https://github.com/flexdesk/api-docs#readme"
+} 

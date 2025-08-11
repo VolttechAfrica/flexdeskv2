@@ -7,6 +7,20 @@ import { BaseRepository } from "./base.repository.js";
 import { FastifyInstance } from "fastify";
 import prisma from "../model/prismaClient.js";
 
+interface CreateUserInput {
+  firstName: string;
+  lastName: string;
+  otherName?: string | null;
+  email: string;
+  password: string;
+  roleId: string;
+  schoolId: string;
+  staffId: string;
+  type?: 'ADMIN' | 'CLASS_ROOM_TEACHER' | 'SUBJECT_TEACHER' | 'OTHER';
+  classId?: string;
+  classArmId?: string | null;
+  subjects?: string[]; // Array of subject IDs to assign
+}
 
 class UserRepositories extends BaseRepository {
   constructor(prisma: PrismaClient, fastify: FastifyInstance) {
@@ -25,11 +39,9 @@ class UserRepositories extends BaseRepository {
               select: {
                 profilePicture: true,
                 dateOfBirth: true,
-                gender: true,
                 phoneNumber: true,
                 address: true,
                 state: true,
-                city: true,
                 lga: true,
               },
             },
@@ -43,6 +55,17 @@ class UserRepositories extends BaseRepository {
               select: {
                 classId: true,
                 classArmId: true,
+              },
+            },
+            assignedSubjects: {
+              select: {
+                subject: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
               },
             },
             role: {
@@ -90,12 +113,33 @@ class UserRepositories extends BaseRepository {
     }
   }
 
+  private async handleSubjectAssignment(
+    prisma: PrismaClient,
+    staffId: string,
+    subjectIds: string[]
+  ): Promise<void> {
+    // Remove existing subject assignments
+    await prisma.assignedSubject.deleteMany({
+      where: { staffId },
+    });
+
+    // Create new subject assignments
+    if (subjectIds.length > 0) {
+      await prisma.assignedSubject.createMany({
+        data: subjectIds.map(subjectId => ({
+          staffId,
+          subjectId,
+        })),
+      });
+    }
+  }
+
   private async handleStaffLogin(
     prisma: PrismaClient,
     staffId: string,
     password: string
   ): Promise<void> {
-    await prisma.staffLogin.create({
+    await (prisma as any).login.create({
       data: {
         staffId,
         password,
@@ -103,7 +147,7 @@ class UserRepositories extends BaseRepository {
     });
   }
 
-  async createUser(data: RegisterUser): Promise<any> {
+  async createUser(data: CreateUserInput): Promise<any> {
     return this.executeQuery('createUser', 'staff', async () => {
       try {
         const result = await this.prisma.$transaction(async (tx) => {
@@ -116,11 +160,15 @@ class UserRepositories extends BaseRepository {
               email: data.email,
               roleId: data.roleId,
               schoolId: data.schoolId,
+              type: data.type || 'OTHER',
             },
           });
 
-          if (data.classId && data.password) {
+          if (data.password) {
             await this.handleStaffLogin(tx as PrismaClient, staff.id, data.password);
+          }
+
+          if (data.classId) {
             await this.handleClassAssignment(tx as PrismaClient, {
               classId: data.classId,
               classArmId: data?.classArmId || null,
@@ -128,7 +176,11 @@ class UserRepositories extends BaseRepository {
             });
           }
 
-          return true;
+          if (data.subjects && data.subjects.length > 0 && data.type === 'SUBJECT_TEACHER') {
+            await this.handleSubjectAssignment(tx as PrismaClient, staff.id, data.subjects);
+          }
+
+          return staff;
         });
 
         // Invalidate relevant caches
@@ -174,10 +226,8 @@ class UserRepositories extends BaseRepository {
     if (data?.address) selectData.address = data?.address;
     if (data?.state) selectData.state = data?.state;
     if (data?.phoneNumber) selectData.phoneNumber = data?.phoneNumber;
-    if (data?.gender) selectData.gender = data?.gender;
     if (data?.dateOfBirth) selectData.dateOfBirth = data?.dateOfBirth;
     if (data?.profilePicture) selectData.profilePicture = data?.profilePicture;
-    if (data?.city) selectData.city = data?.city;
     if (data?.lga) selectData.lga = data?.lga;
 
     try {
@@ -209,10 +259,8 @@ class UserRepositories extends BaseRepository {
           select: {
             profilePicture: true,
             dateOfBirth: true,
-            gender: true,
             phoneNumber: true,
             address: true,
-            city: true,
             lga: true,
           },
         })
@@ -224,52 +272,61 @@ class UserRepositories extends BaseRepository {
     const cacheKey = `user:info:${staffId}`;
     return this.withCache(cacheKey, 'getUserInfo', () =>
       this.executeQuery('getUserInfo', 'staff', async () => {
-        this.prisma.staff.findUnique({
-      where: { id: staffId },
-      include: {
-        profile: {
-          select: {
-            profilePicture: true,
-            dateOfBirth: true,
-            gender: true,
-            phoneNumber: true,
-            address: true,
-            state: true,
-            city: true,
-            lga: true,
-          },
-        },
-        firstTimeLogin: true,
-        staffLogin: {
-          select: {
-            password: true,
-          },
-        },
-        assignedClasses: {
-          select: {
-            classId: true,
-            classArmId: true,
-          },
-        },
-        role: {
-          select: {
-            name: true,
-            RolePermission: {
+        return this.prisma.staff.findUnique({
+          where: { id: staffId },
+          include: {
+            profile: {
               select: {
-                permission: {
+                profilePicture: true,
+                dateOfBirth: true,
+                phoneNumber: true,
+                address: true,
+                state: true,
+                lga: true,
+              },
+            },
+            firstTimeLogin: true,
+            staffLogin: {
+              select: {
+                password: true,
+              },
+            },
+            assignedClasses: {
+              select: {
+                classId: true,
+                classArmId: true,
+              },
+            },
+            assignedSubjects: {
+              select: {
+                subject: {
                   select: {
-                    action: true,
+                    id: true,
+                    name: true,
+                    code: true,
                   },
                 },
               },
             },
+            role: {
+              select: {
+                name: true,
+                RolePermission: {
+                  select: {
+                    permission: {
+                      select: {
+                        action: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            school: true,
           },
-        },
-        school: true,
-      },
-    })
-    })
-  );
+        });
+      })
+    );
   }
 
   async updateOboardingInfo(data: any): Promise<boolean> {
@@ -350,7 +407,7 @@ class UserRepositories extends BaseRepository {
   async getFirstTimeLogin(staffId: string): Promise<any> {
     try {
       const user = await this.prisma.firstTimeLogin.findFirst({
-        where: { userId: staffId },
+        where: { staff: { id: staffId } },
       });
       return user || null;
     } catch (error) {
@@ -363,7 +420,7 @@ class UserRepositories extends BaseRepository {
       const user = await this.getFirstTimeLogin(staffId);
       if (user) { 
         await this.prisma.firstTimeLogin.delete({
-          where: { userId: staffId },
+          where: { id: user.id },
         });
       }
       return true;
@@ -371,8 +428,123 @@ class UserRepositories extends BaseRepository {
       return false;
     }
   }
-}
 
+  async findStudentByEmail(email: string) {
+    const cacheKey = `student:email:${email}`;
+  
+    return this.withCache(cacheKey, 'findStudentByEmail', () =>
+      this.executeQuery('findStudentByEmail', 'student', () =>
+        this.prisma.student.findFirst({
+          where: { 
+            profile: {
+              email: email
+            }
+          },
+          include: {
+            profile: {
+              select: {
+                profilePicture: true,
+                dateOfBirth: true,
+                phoneNumber: true,
+                address: true,
+                state: true,
+                lga: true,
+                email: true,
+              },
+            },
+            class: true,
+            classArm: true,
+            school: true,
+            role: {
+              select: {
+                name: true,
+                RolePermission: {
+                  select: {
+                    permission: {
+                      select: {
+                        action: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                phone: true,
+              },
+            },
+          },
+        })
+      )
+    );
+  }
+
+  async findParentByEmail(email: string) {
+    const cacheKey = `parent:email:${email}`;
+  
+    return this.withCache(cacheKey, 'findParentByEmail', () =>
+      this.executeQuery('findParentByEmail', 'parent', () =>
+        this.prisma.parent.findUnique({
+          where: { email },
+          include: {
+            role: {
+              select: {
+                name: true,
+                RolePermission: {
+                  select: {
+                    permission: {
+                      select: { action: true },
+                    },
+                  },
+                },
+              },
+            },
+            parentLogin: {
+              select: {
+                password: true,
+              },
+            },
+            children: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                class: true,
+                classArm: true,
+                school: true,
+              },
+            },
+          },
+        })
+      )
+    );
+  }
+
+  async getSchoolById(schoolId: string) {
+    const cacheKey = `school:${schoolId}`;
+  
+    return this.withCache(cacheKey, 'getSchoolById', () =>
+      this.executeQuery('getSchoolById', 'school', () =>
+        this.prisma.school.findUnique({
+          where: { id: schoolId },
+          select: {
+            id: true,
+            name: true,
+            shortName: true,
+            address: true,
+            state: true,
+            lga: true,
+          },
+        })
+      )
+    );
+  }
+}
 
 export const createUserRepository = (fastify: FastifyInstance) => {
   return new UserRepositories(prisma, fastify);
