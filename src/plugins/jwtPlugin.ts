@@ -2,18 +2,35 @@ import fp from 'fastify-plugin';
 import fastifyJwt from '@fastify/jwt';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import env from '../config/env.js';
-import { AuthError, UserError } from '../utils/errorhandler.js';
+import { AuthError, UserError, TokenExpiredError } from '../utils/errorhandler.js';
 import { HttpStatusCode } from 'axios';
 import AuthorizationService from "../services/authorization.service.js";
-import RedisService from "../services/redis.service.js";
-import { TokenExpiredError } from '../utils/errorhandler.js';
+
+interface AuthenticatedUser {
+  id: string;
+  email: string;
+  userType: string;
+  schoolId: string;
+  role: string;
+  roleId: string;
+  permissions: string[];
+  token: string;
+}
+
+interface JwtPayload {
+  id: string;
+  role?: string;
+  value?: string;
+}
 
 export default fp(async (fastify) => {
-  const jwtSecret = env.jwt.secret;
-  const jwtExpire = env.jwt.expire;
+  const { jwt: { secret: jwtSecret, expire: jwtExpire } } = env;
 
   if (!jwtSecret) {
-    throw new AuthError(HttpStatusCode.InternalServerError, 'The System is not configured properly');
+    throw new AuthError(
+      HttpStatusCode.InternalServerError, 
+      'JWT secret is not configured'
+    );
   }
 
   fastify.register(fastifyJwt, {
@@ -21,42 +38,51 @@ export default fp(async (fastify) => {
     sign: { expiresIn: jwtExpire },
   });
 
-  fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
+  fastify.decorate('authenticate', async function (
+    request: FastifyRequest, 
+    reply: FastifyReply
+  ): Promise<void> {
     try {
-      // await request.jwtVerify();
       const token = request.headers.authorization;
-      let userId = (request.body as any)?.userId;
-      if(!userId) userId = (request.query as any)?.userId;
 
-      if (!token || !token.startsWith('Bearer ') || !userId) {
-          throw new UserError(HttpStatusCode.Unauthorized, 'Unauthorized request, token not found or invalid');
+      if (!token || !token.startsWith('Bearer ')) {
+        throw new UserError(
+          HttpStatusCode.Unauthorized, 
+          'Missing or invalid authorization token'
+        );
       }
+
       const authorizationService = new AuthorizationService(fastify);
-      const redis = new RedisService(fastify);
+      const { status, email, userType, schoolId, role, token: userToken, id: userId } = await authorizationService.authorizeUser(token);
+      
+      if (!status) {
+        throw new TokenExpiredError(
+          HttpStatusCode.Unauthorized, 
+          'Token expired or invalid, please login again'
+        );
+      }
 
-      
-      const roleId: string | null = await redis.get(`ROLE:${userId}`);
-      if(!roleId || typeof roleId.toString() !== 'string') throw new UserError(HttpStatusCode.Unauthorized, `Unable to authorize user, please login again ${typeof roleId}`);
-      
-      const userContext = await authorizationService.authorizeUser(token, userId, roleId as string);
-      if(!userContext.status) throw new TokenExpiredError(HttpStatusCode.Unauthorized, 'Unauthorized request, please login again');
-      
-      const permissions = await redis.get(`PERMISSION:${userId}`)||[];
-  
-      request.user = {
-        token: userContext?.token || '',
-        id: userId,
-        roleId: roleId as string,
-        permissions: Array.isArray(permissions) ? permissions : [],
-      } 
+      const authenticatedUser: AuthenticatedUser = {
+        id: userId || '',
+        email: email || '',
+        userType: userType || '',
+        schoolId: schoolId || '',
+        role: role || '',
+        roleId: role || '',
+        permissions: [],
+        token: userToken || ''
+      };
 
-    } catch (err: any) {
-      throw err;
+      request.user = authenticatedUser;
+
+    } catch (error) {
+      fastify.log.error('Authentication failed:', error);
+      throw error;
     }
   });
 
   fastify.decorate('signToken', function (
-    payload: { id: string; role?: string; value?: string },
+    payload: JwtPayload,
     options?: { expiresIn?: string | number }
   ): string {
     return fastify.jwt.sign(payload, {

@@ -119,6 +119,26 @@ class AuthController {
       throw error;
     }
   }
+
+  async refreshToken(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      if (!request.user)
+        throw new AuthError(
+          HttpStatusCode.Unauthorized,
+          "Unauthorized, please login to continue"
+        );
+      const email = (request.user as any)?.email;
+      if(!email) throw new AuthError(HttpStatusCode.Unauthorized, "Invalid request, please login to continue");
+      const refreshTokenData = await this.authService.refreshToken(email);
+      const response = {  
+        status: true,
+        token: refreshTokenData
+      }
+      return reply.status(HttpStatusCode.Ok).send(response);
+    } catch (error: any) {
+      throw error;
+    }
+  }
 }
 
 export default AuthController;

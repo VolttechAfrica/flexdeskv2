@@ -27,68 +27,6 @@ class UserRepositories extends BaseRepository {
     super(prisma, fastify);
   }
 
-  async findByEmail(email: string) {
-    const cacheKey = `user:email:${email}`;
-  
-    return this.withCache(cacheKey, 'findByEmail', () =>
-      this.executeQuery('findByEmail', 'staff', () =>
-        this.prisma.staff.findUnique({
-          where: { email },
-          include: {
-            profile: {
-              select: {
-                profilePicture: true,
-                dateOfBirth: true,
-                phoneNumber: true,
-                address: true,
-                state: true,
-                lga: true,
-              },
-            },
-            firstTimeLogin: true,
-            staffLogin: {
-              select: {
-                password: true,
-              },
-            },
-            assignedClasses: {
-              select: {
-                classId: true,
-                classArmId: true,
-              },
-            },
-            assignedSubjects: {
-              select: {
-                subject: {
-                  select: {
-                    id: true,
-                    name: true,
-                    code: true,
-                  },
-                },
-              },
-            },
-            role: {
-              select: {
-                name: true,
-                RolePermission: {
-                  select: {
-                    permission: {
-                      select: {
-                        action: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-            school: true,
-          },
-        })
-      )
-    );
-  }
-
   private async handleClassAssignment(
     prisma: PrismaClient,
     params: { classId: string; classArmId?: string | null; staffId: string }
@@ -198,56 +136,69 @@ class UserRepositories extends BaseRepository {
     });
   }
 
-  private async handleUpdateFirstInfo(
-    prisma: PrismaClient,
-    data: any
-  ): Promise<boolean> {
-    try {
-      await prisma.staff.update({
-        where: { id: data.staffId },
-        data: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          otherName: data.otherName,
-        },
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
 
-  private async handleUpdateProfile(
-    prisma: PrismaClient,
-    data: any
-  ): Promise<boolean> {
-    const selectData: Record<string, any> = {};
-
-    if (data?.address) selectData.address = data?.address;
-    if (data?.state) selectData.state = data?.state;
-    if (data?.phoneNumber) selectData.phoneNumber = data?.phoneNumber;
-    if (data?.dateOfBirth) selectData.dateOfBirth = data?.dateOfBirth;
-    if (data?.profilePicture) selectData.profilePicture = data?.profilePicture;
-    if (data?.lga) selectData.lga = data?.lga;
-
-    try {
-      const userProfile = await prisma.staffProfile.findUnique({
-        where: { staffId: data.staffId },
-      });
-      if (userProfile) {
-        await prisma.staffProfile.update({
-          where: { staffId: data.staffId },
-          data: selectData,
-        });
-      } else {
-        await prisma.staffProfile.create({
-          data: { ...selectData, staffId: data.staffId },
-        });
-      }
-      return true;
-    } catch (error) {
-      return false;
-    }
+  async findByEmail(email: string) {
+    const cacheKey = `user:email:${email}`;
+  
+    return this.withCache(cacheKey, 'findByEmail', () =>
+      this.executeQuery('findByEmail', 'staff', () =>
+        this.prisma.staff.findUnique({
+          where: { email },
+          include: {
+            profile: {
+              select: {
+                profilePicture: true,
+                dateOfBirth: true,
+                phoneNumber: true,
+                address: true,
+                state: true,
+                lga: true,
+                gender: true,
+                city: true,
+              },
+            },
+            firstTimeLogin: true,
+            staffLogin: {
+              select: {
+                password: true,
+              },
+            },
+            assignedClasses: {
+              select: {
+                classId: true,
+                classArmId: true,
+              },
+            },
+            assignedSubjects: {
+              select: {
+                subject: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
+            },
+            role: {
+              select: {
+                name: true,
+                RolePermission: {
+                  select: {
+                    permission: {
+                      select: {
+                        action: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            school: true,
+          },
+        })
+      )
+    );
   }
 
   async getUserProfile(staffId: string): Promise<any> {
@@ -262,6 +213,8 @@ class UserRepositories extends BaseRepository {
             phoneNumber: true,
             address: true,
             lga: true,
+            gender: true,
+            city: true,
           },
         })
       )
@@ -283,6 +236,8 @@ class UserRepositories extends BaseRepository {
                 address: true,
                 state: true,
                 lga: true,
+                gender: true,
+                city: true,
               },
             },
             firstTimeLogin: true,
@@ -329,59 +284,63 @@ class UserRepositories extends BaseRepository {
     );
   }
 
-  async updateOboardingInfo(data: any): Promise<boolean> {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        await this.handleUpdateFirstInfo(tx as PrismaClient, data);
-        await this.handleUpdateProfile(tx as PrismaClient, data);
-      });
-      await this.invalidateCache(`user:info:${data.staffId}`);
-      await this.invalidateCache(`user:profile:${data.staffId}`);
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async updateOboarding2(data: any): Promise<boolean> {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        await this.handleUpdateProfile(tx as PrismaClient, data);
-      });
-      return true;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  async getEducationalQualification(staffId: string): Promise<any> {
-    try {
-      const user = await this.prisma.staffQualification.findFirst({
-        where: { staffId: staffId },
-      });
-      return user || null;
-    } catch (error) {
-      return null;
-    }
-  }
-
   async updateEducationalQualification(data: any): Promise<boolean> {
     try {
-      const user = await this.getEducationalQualification(data.staffId);
-      if (user) {
-        await this.prisma.staffQualification.update({
-          where: { staffId: data.staffId },
-          data: data,
+      const existingQualification = await this.prisma.staffQualification.findFirst({
+        where: { 
+          staffId: data.staffId,
+          qualification: data.qualification,
+          institution: data.institution,
+          course: data.course
+        },
+      });
+      
+      if (existingQualification) {
+        await this.prisma.staffQualification.updateMany({
+          where: { 
+            staffId: data.staffId,
+            qualification: data.qualification,
+            institution: data.institution,
+            course: data.course
+          },
+          data: {
+            grade: data.grade,
+            yearObtained: data.yearObtained,
+          },
         });
       } else {
         await this.prisma.staffQualification.create({
-          data: data,
+          data: {
+            staffId: data.staffId,
+            qualification: data.qualification,
+            institution: data.institution,
+            course: data.course,
+            grade: data.grade,
+            yearObtained: data.yearObtained,
+          },
         });
       }
+      
+      await this.invalidateCache(`user:info:${data.staffId}`);
+      await this.invalidateCache(`user:profile:${data.staffId}`);
+
       return true;
     } catch (error) {
-      console.log(error);
+      console.log('Error updating educational qualification:', error);
       return false;
+    }
+  }
+
+  async getEducationalQualifications(staffId: string): Promise<any[]> {
+    try {
+      const qualifications = await this.prisma.staffQualification.findMany({
+        where: { staffId },
+        orderBy: { yearObtained: 'desc' }
+      });
+      return qualifications;
+    } catch (error) {
+      console.log('Error getting educational qualifications:', error);
+      return [];
     }
   }
 
@@ -400,6 +359,120 @@ class UserRepositories extends BaseRepository {
       }
       return true;
     } catch (error) {
+      return false;
+    }
+  }
+
+  async updateProfile(data: any): Promise<boolean> {
+    try {
+      const userProfile = await this.prisma.staffProfile.findUnique({
+        where: { staffId: data.staffId },
+      });
+      
+      if (userProfile) {
+        await this.prisma.staffProfile.update({
+          where: { staffId: data.staffId },
+          data: {
+            profilePicture: data.profilePicture,
+            dateOfBirth: data.dateOfBirth,
+            gender: data.gender,
+            phoneNumber: data.phoneNumber,
+            address: data.address,
+            state: data.state,
+            city: data.city,
+            lga: data.lga,
+          },
+        });
+      } else {
+        await this.prisma.staffProfile.create({
+          data: {
+            staffId: data.staffId,
+            profilePicture: data.profilePicture,
+            dateOfBirth: data.dateOfBirth,
+            gender: data.gender,
+            phoneNumber: data.phoneNumber,
+            address: data.address,
+            state: data.state,
+            city: data.city,
+            lga: data.lga,
+          },
+        });
+      }
+      
+      await this.invalidateCache(`user:profile:${data.staffId}`);
+      await this.invalidateCache(`user:info:${data.staffId}`);
+      await this.invalidateCache(`user:email:${data.email}`);
+      return true;
+    } catch (error) {
+      console.log('Error updating profile:', error);
+      return false;
+    }
+  }
+
+  async updateEmergencyContact(data: any): Promise<boolean> {
+    try {
+      const existingContact = await this.prisma.emergencyContact.findFirst({
+        where: { staffId: data.staffId },
+      });
+      
+      if (existingContact) {
+        await this.prisma.emergencyContact.update({
+          where: { id: existingContact.id },
+          data: {
+            name: data.name,
+            relationship: data.relationship,
+            phone: data.phoneNumber,
+          },
+        });
+      } else {
+        await this.prisma.emergencyContact.create({
+          data: {
+            staffId: data.staffId,
+            name: data.name,
+            relationship: data.relationship,
+            phone: data.phoneNumber,
+          },
+        });
+      }
+      
+      await this.invalidateCache(`user:info:${data.staffId}`);
+      return true;
+    } catch (error) {
+      console.log('Error updating emergency contact:', error);
+      return false;
+    }
+  }
+
+  async updateNotificationSettings(data: any): Promise<boolean> {
+    try {
+      const existingSettings = await this.prisma.userNotificationSettings.findFirst({
+        where: { userId: data.userId },
+      });
+      
+      if (existingSettings) {
+        await this.prisma.userNotificationSettings.update({
+          where: { id: existingSettings.id },
+          data: {
+            emailNotifications: data.email,
+            smsNotifications: data.sms,
+            pushNotifications: data.push,
+          },
+        });
+      } else {
+        await this.prisma.userNotificationSettings.create({
+          data: {
+            userId: data.userId,
+            emailNotifications: data.email,
+            smsNotifications: data.sms,
+            pushNotifications: data.push,
+          },
+        });
+      }
+      
+      await this.invalidateCache(`user:info:${data.userId}`);
+      return true;
+    } catch (error) {
+      console.log('Error updating notification settings:', error);
       return false;
     }
   }
@@ -504,6 +577,7 @@ class UserRepositories extends BaseRepository {
                 },
               },
             },
+            firstTimeLogin: true,
             parentLogin: {
               select: {
                 password: true,

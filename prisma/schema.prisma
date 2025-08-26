@@ -81,6 +81,7 @@ model School {
   classes  SchoolClass[]
   students Student[]
   tasks    Task[]
+
   @@index([name], name: "idx_school_name")
   @@index([email], name: "idx_school_email")
 }
@@ -97,6 +98,7 @@ model Role {
   student        Student[]
   RolePermission RolePermission[]
   parent         Parent[]
+
   @@unique([schoolId, name], name: "unique_role_name_school")
   @@index([schoolId], name: "idx_role_school")
 }
@@ -138,20 +140,22 @@ model Staff {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  role            Role                 @relation(fields: [roleId], references: [id])
-  school          School               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  profile         StaffProfile?
-  qualifications  StaffQualification[]
-  staffLogin      Login?               @relation("StaffLogin")
-  bankAccount     StaffBankAccount?
-  attendances     StaffAttendance[]
-  leaves          StaffLeave[]
-  firstTimeLogin  FirstTimeLogin?      @relation("StaffFirstTimeLogin")
-  assignedClasses AssignedClasses[]
-  userActivity    userActivity[]
-  taskMembers     TaskMember[]
-  createdTasks    Task[]              @relation("TaskCreator")
-  assignedSubjects AssignedSubject[]
+  role                     Role                       @relation(fields: [roleId], references: [id])
+  school                   School                     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  profile                  StaffProfile?
+  qualifications           StaffQualification[]
+  staffLogin               Login?                     @relation("StaffLogin")
+  bankAccount              StaffBankAccount?
+  attendances              StaffAttendance[]
+  leaves                   StaffLeave[]
+  firstTimeLogin           FirstTimeLogin?            @relation("StaffFirstTimeLogin")
+  assignedClasses          AssignedClasses[]
+  userActivity             userActivity[]
+  taskMembers              TaskMember[]
+  createdTasks             Task[]                     @relation("TaskCreator")
+  assignedSubjects         AssignedSubject[]
+  userNotificationSettings UserNotificationSettings[]
+  emergencyContacts        EmergencyContact[]
 
   @@index([roleId], name: "idx_staff_role")
   @@index([schoolId], name: "idx_staff_school")
@@ -166,7 +170,7 @@ model StaffProfile {
   dateOfBirth    String?  @db.VarChar(100)
   gender         String?  @db.VarChar(100)
   phoneNumber    String?  @db.VarChar(100)
-  address        String?  @db.VarChar(100)
+  address        String?  @db.VarChar(200)
   state          String?  @db.VarChar(100)
   city           String?  @db.VarChar(100)
   lga            String?  @db.VarChar(100)
@@ -179,7 +183,7 @@ model StaffProfile {
 }
 
 model StaffQualification {
-  staffId       String   @unique
+  staffId       String   
   qualification String   @db.VarChar(100)
   institution   String   @db.VarChar(100)
   course        String   @db.VarChar(100)
@@ -190,7 +194,7 @@ model StaffQualification {
 
   staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  @@id([staffId, qualification, institution, course], name: "idx_staff_qualification_unique")
+  @@unique([staffId, qualification, institution, course], name: "idx_staff_qualification_unique")
   @@index([staffId], name: "idx_staff_qualification")
 }
 
@@ -198,15 +202,18 @@ model Login {
   id        String   @id @default(uuid())
   staffId   String?  @unique
   parentId  String?  @unique
+  studentId String?  @unique
   password  String   @db.VarChar(150)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  staff  Staff?  @relation("StaffLogin", fields: [staffId], references: [id], onDelete: Cascade, map: "fk_login_staff")
-  parent Parent? @relation("ParentLogin", fields: [parentId], references: [id], onDelete: Cascade, map: "fk_login_parent")
+  staff   Staff?   @relation("StaffLogin", fields: [staffId], references: [id], onDelete: Cascade, map: "fk_login_staff")
+  parent  Parent?  @relation("ParentLogin", fields: [parentId], references: [id], onDelete: Cascade, map: "fk_login_parent")
+  student Student? @relation("StudentLogin", fields: [studentId], references: [id], onDelete: Cascade, map: "fk_login_student")
 
   @@index([staffId], name: "idx_login_staff")
   @@index([parentId], name: "idx_login_parent")
+  @@index([studentId], name: "idx_login_student")
 }
 
 model StaffBankAccount {
@@ -280,7 +287,7 @@ model Term {
   staffAttendances StaffAttendance[]
   staffLeaves      StaffLeave[]
   students         Student[]
-  tasks           Task[]
+  tasks            Task[]
 
   @@index([schoolId], name: "idx_term_school")
 }
@@ -354,8 +361,8 @@ model AssignedSubject {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  staff    Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  subject  Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  staff   Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@index([staffId], name: "idx_assigned_subject_staff")
   @@index([subjectId], name: "idx_assigned_subject_subject")
@@ -385,12 +392,14 @@ model Student {
   graduated GraduatedStudent?
   parentId  String?
   parent    Parent?           @relation("ParentChildren", fields: [parentId], references: [id])
+  login     Login?            @relation("StudentLogin")
 
   @@index([classId], name: "idx_student_class")
   @@index([classArmId], name: "idx_student_class_arm")
   @@index([schoolId], name: "idx_student_school")
   @@index([termId], name: "idx_student_term")
   @@index([roleId], name: "idx_student_role")
+  @@index([parentId], name: "idx_student_parent")
 }
 
 model StudentProfile {
@@ -422,32 +431,30 @@ model GraduatedStudent {
 }
 
 model Parent {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  firstName String   @db.VarChar(100)
-  lastName  String   @db.VarChar(100)
-  otherName String?  @db.VarChar(100)
-  phone     String   @db.VarChar(20)
-  address   String?  @db.VarChar(200)
-  state     String?  @db.VarChar(100)
-  lga       String?  @db.VarChar(100)
-  city      String?  @db.VarChar(100)
+  id        String       @id @default(uuid())
+  email     String       @unique
+  firstName String       @db.VarChar(100)
+  lastName  String       @db.VarChar(100)
+  otherName String?      @db.VarChar(100)
+  phone     String       @db.VarChar(20)
+  address   String?      @db.VarChar(200)
+  state     String?      @db.VarChar(100)
+  lga       String?      @db.VarChar(100)
+  city      String?      @db.VarChar(100)
   roleId    String
   status    ParentStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
-  role            Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  children        Student[]       @relation("ParentChildren")
-  parentLogin     Login?          @relation("ParentLogin")
-  firstTimeLogin  FirstTimeLogin? @relation("ParentFirstTimeLogin")
+  role           Role            @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  children       Student[]       @relation("ParentChildren")
+  parentLogin    Login?          @relation("ParentLogin")
+  firstTimeLogin FirstTimeLogin? @relation("ParentFirstTimeLogin")
 
   @@index([email], name: "idx_parent_email")
   @@index([status], name: "idx_parent_status")
   @@index([roleId], name: "idx_parent_role")
 }
-
-
 
 model Subject {
   id         String        @id @default(uuid())
@@ -459,8 +466,8 @@ model Subject {
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
 
-  class    SchoolClass @relation(fields: [classId], references: [id], onDelete: Cascade)
-  classArm ClassArm?   @relation(fields: [classArmId], references: [id])
+  class            SchoolClass       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classArm         ClassArm?         @relation(fields: [classArmId], references: [id])
   assignedSubjects AssignedSubject[]
 
   @@index([classId], name: "idx_subject_class")
@@ -470,9 +477,9 @@ model Subject {
 model userActivity {
   id        String   @id @default(uuid())
   userId    String
-  activity  String
-  ipAddress String?  @db.VarChar(100)
-  hostName  String?  @db.VarChar(100)
+  activity  String   @db.Text
+  ipAddress String?  @db.VarChar(200)
+  hostName  String?  @db.VarChar(200)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -540,15 +547,15 @@ enum TaskMemberStatus {
 }
 
 model TaskMember {
-  id        String   @id @default(uuid())
-  taskId    String
-  memberId  String
-  role      TaskMemberRole @default(ASSIGNEE)
-  status    TaskMemberStatus @default(PENDING)
-  joinedAt  DateTime @default(now())
-  leftAt    DateTime?
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  member    Staff    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id       String           @id @default(uuid())
+  taskId   String
+  memberId String
+  role     TaskMemberRole   @default(ASSIGNEE)
+  status   TaskMemberStatus @default(PENDING)
+  joinedAt DateTime         @default(now())
+  leftAt   DateTime?
+  task     Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  member   Staff            @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@index([taskId], name: "idx_task_member_task")
   @@index([memberId], name: "idx_task_member_staff")
@@ -557,16 +564,16 @@ model TaskMember {
 }
 
 model SubTask {
-  id          String       @id @default(uuid())
-  name        String       @db.VarChar(200)
-  status      TaskStatus   @default(PENDING)
-  taskId      String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  notes       String?      @db.VarChar(1000)
-  tagTo       String?      @db.VarChar(100)
+  id        String     @id @default(uuid())
+  name      String     @db.VarChar(200)
+  status    TaskStatus @default(PENDING)
+  taskId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  notes     String?    @db.VarChar(1000)
+  tagTo     String?    @db.VarChar(100)
 
-  task        Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([name], name: "idx_subtask_name")
   @@index([taskId], name: "idx_subtask_task")
@@ -596,17 +603,17 @@ enum SupportTicketCategory {
 }
 
 model SupportTicket {
-  id        String   @id @default(uuid())
-  firstName String   @db.VarChar(100)
-  lastName  String   @db.VarChar(100)
-  email     String   @db.VarChar(100)
-  phone     String?   @db.VarChar(100)
-  message   String   @db.VarChar(1000)
+  id        String                @id @default(uuid())
+  firstName String                @db.VarChar(100)
+  lastName  String                @db.VarChar(100)
+  email     String                @db.VarChar(100)
+  phone     String?               @db.VarChar(100)
+  message   String                @db.VarChar(1000)
   priority  SupportTicketPriority @default(MEDIUM)
-  status    SupportTicketStatus @default(PENDING)
+  status    SupportTicketStatus   @default(PENDING)
   category  SupportTicketCategory @default(GENERAL)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
 
   @@index([email], name: "idx_support_ticket_email")
   @@index([status], name: "idx_support_ticket_status")
@@ -615,32 +622,32 @@ model SupportTicket {
 }
 
 model SchoolRegistrationRequest {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(150)
-  type      String   @db.VarChar(100)
-  educationLevel String   @db.VarChar(100)
+  id               String   @id @default(uuid())
+  name             String   @db.VarChar(150)
+  type             String   @db.VarChar(100)
+  educationLevel   String   @db.VarChar(100)
   numberOfStudents String   @db.VarChar(100)
-  numberOfStaff String   @db.VarChar(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  numberOfStaff    String   @db.VarChar(100)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  contactInfo    ContactInfo[]
+  address        Address[]
+  additionalInfo AdditionalInfo[]
 
   @@index([name], name: "idx_school_reg_name")
   @@index([type], name: "idx_school_reg_type")
   @@index([educationLevel], name: "idx_school_reg_edu_level")
   @@index([numberOfStudents], name: "idx_school_reg_students")
-  @@index([numberOfStaff], name: "idx_school_reg_staff")   
-
-  contactInfo ContactInfo[]
-  address Address[]
-  additionalInfo AdditionalInfo[]
+  @@index([numberOfStaff], name: "idx_school_reg_staff")
 }
 
 model Address {
   id        String   @id @default(uuid())
-  city      String @db.VarChar(100)
-  state     String @db.VarChar(100)
-  country   String @db.VarChar(100)
-  zipCode   String @db.VarChar(100)
+  city      String   @db.VarChar(100)
+  state     String   @db.VarChar(100)
+  country   String   @db.VarChar(100)
+  zipCode   String   @db.VarChar(100)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -653,15 +660,15 @@ model Address {
 }
 
 model ContactInfo {
-  id        String   @id @default(uuid())
-  schoolRegistrationRequestId  String
-  firstName      String   @db.VarChar(150)
-  lastName      String   @db.VarChar(150)
-  email     String   @db.VarChar(100)
-  phone     String   @db.VarChar(100)
-  jobTitle  String   @db.VarChar(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                          String   @id @default(uuid())
+  schoolRegistrationRequestId String
+  firstName                   String   @db.VarChar(150)
+  lastName                    String   @db.VarChar(150)
+  email                       String   @db.VarChar(100)
+  phone                       String   @db.VarChar(100)
+  jobTitle                    String   @db.VarChar(100)
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 
   schoolRegistrationRequest SchoolRegistrationRequest @relation(fields: [schoolRegistrationRequestId], references: [id], onDelete: Cascade)
 
@@ -669,13 +676,13 @@ model ContactInfo {
 }
 
 model AdditionalInfo {
-  id        String   @id @default(uuid())
-  currentSoftware String @db.VarChar(100)
-  implementationTimeline String @db.VarChar(100)
-  specificRequirements String @db.VarChar(1000)
-  howDidYouHearAboutUs String @db.VarChar(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                     String   @id @default(uuid())
+  currentSoftware        String   @db.VarChar(100)
+  implementationTimeline String   @db.VarChar(100)
+  specificRequirements   String   @db.VarChar(1000)
+  howDidYouHearAboutUs   String   @db.VarChar(100)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   schoolRegistrationRequest SchoolRegistrationRequest @relation(fields: [id], references: [id], onDelete: Cascade)
 
@@ -683,4 +690,35 @@ model AdditionalInfo {
   @@index([implementationTimeline], name: "idx_add_info_timeline")
   @@index([specificRequirements], name: "idx_add_info_requirements")
   @@index([howDidYouHearAboutUs], name: "idx_add_info_source")
+}
+
+model UserNotificationSettings {
+  id                 String   @id @default(uuid())
+  userId             String
+  emailNotifications Boolean  @default(true)
+  smsNotifications   Boolean  @default(true)
+  pushNotifications  Boolean  @default(true)
+  emailFrequency     String   @default("daily")
+  smsFrequency       String   @default("daily")
+  pushFrequency      String   @default("daily")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user Staff @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_user_notification_settings")
+}
+
+model EmergencyContact {
+  id           String   @id @default(uuid())
+  staffId      String
+  name         String   @db.VarChar(100)
+  phone        String   @db.VarChar(100)
+  relationship String   @db.VarChar(100)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_emergency_contact")
 }

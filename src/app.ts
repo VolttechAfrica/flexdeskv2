@@ -7,7 +7,7 @@ import studentRoutes from "./routes/student.route.js";
 import taskRoutes from "./routes/task.routes.js";
 import teacherRoutes from "./routes/teacher.route.js";
 import supportTicketRoutes from "./routes/supportTicket.routes.js";
-
+import cloudinaryRoutes from "./routes/cloudinary.routes.js";
 
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
@@ -147,7 +147,7 @@ export const buildServer = async () => {
   app.register(taskRoutes, { prefix: "/api/v2" });
   app.register(teacherRoutes, { prefix: "/api/v2/teachers" });
   app.register(supportTicketRoutes, { prefix: "/api/v2/support" });
-
+  app.register(cloudinaryRoutes, { prefix: "/api/v2/cloudinary" });
   app.get("/", async (request, reply) => {
     reply.unauthorized();
   });

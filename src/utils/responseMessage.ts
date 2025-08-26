@@ -13,7 +13,7 @@ export const responseMessage = {
 
     InvalidEmailOrPassword: {
         status: false,
-        message: "Invalid Email or password, please try again",
+        message: "Invalid credentials, please try again",
         error: "Unauthorized",
     },
 

@@ -8,9 +8,13 @@ declare module 'fastify' {
     interface FastifyRequest {
         user: {
             id: string;
-            roleId: string;
-            permissions: string[];
-            token: string;
+            email: string;
+            userType?: string;
+            schoolId?: string;
+            role?: string;
+            roleId?: string;
+            permissions?: string[];
+            token?: string;
         };
     }
 }

@@ -30,6 +30,22 @@ async function authRoutes(app: FastifyInstance){
         handler: authHandler.logout.bind(authHandler)
     })
 
+    app.route({
+        method: "POST",
+        url: "/token/refresh",
+        preHandler: [app.authenticate],
+        schema: {
+            body: {
+                type: 'object',
+                required: ['userId'],
+                properties: {
+                    userId: { type: 'string' }
+                }
+            }
+        },
+        handler: authHandler.refreshToken.bind(authHandler)
+    })
+
     const registerAuthorization = await authorize("manage_staff");
     app.route<{ Body: RegisterRequest }>({
         method: "POST",

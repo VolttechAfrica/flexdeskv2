@@ -4,24 +4,28 @@ import { AuthError } from '../utils/errorhandler.js';
 import { HttpStatusCode } from "axios";
 import { responseMessage } from "../utils/responseMessage.js";
 import AuthorizationService from "./authorization.service.js";
-
 import { RegisterRequest, RegisterResponse, RegisterUser, StaffType } from "../types/user.js";
 import { DEFAULT_PASSWORD } from "../constants/default.js";
 import { validateEmail } from "../utils/validator.js";
 import { generateRegistrationNumber } from "../utils/registrationNumber.js";
 import EmailService from "./email.service.js";
+import RedisService from "./redis.service.js";
+
+
 
 class AuthService {
     private app: FastifyInstance;
     private authRepositories: any;
     private authHelper: AuthorizationService;
     private emailService: EmailService;
+    private redis: RedisService;
     
     constructor(app: FastifyInstance, authRepositories: any) {
         this.app = app;
         this.authRepositories = authRepositories;
         this.authHelper = new AuthorizationService(app);
         this.emailService = new EmailService(app);
+        this.redis = new RedisService(app);
     }
 
     private async hashPassword(password: string): Promise<string> {
@@ -31,13 +35,25 @@ class AuthService {
     private async comparePassword(password: string, hash: string): Promise<boolean> {
         return await this.app.bcrypt.compare(password, hash);
     }
+    private async storeUserInRedis(userId: string): Promise<any> {
+        const key = `user:${userId}`;
+        const ttl = 7 * 24 * 60 * 60;
+        await this.redis.set({key, value: userId, ttl});
+        return true;
+    }
+
+    async getUserFromRedis(userId: string): Promise<any> {
+        const key = `user:${userId}`;
+        const user = await this.redis.get(key);
+        if(!user) return null;
+        return user;
+    }
 
     async login({ email, password }: Login): Promise<any> {
         let user: any;
         let loginData: any;
-        let userTypeDetected: 'staff' | 'parent';
+        let userTypeDetected: 'staff' | 'parent' | 'student' | 'other';
 
-        // Auto-detect user type by searching in all user tables
         user = await this.findUserByEmail(email);
         if (!user) {
             throw new AuthError(HttpStatusCode.NotFound, responseMessage.InvalidEmailOrPassword.message);
@@ -49,7 +65,6 @@ class AuthService {
             throw new Error(responseMessage.UserAccountInactive.message);
         }
 
-        // Get login credentials based on detected user type
         switch (userTypeDetected) {
             case 'staff':
                 loginData = user?.staffLogin;
@@ -72,6 +87,7 @@ class AuthService {
 
         const payload = {
             id: user?.id,
+            email: user?.email,
             role: user?.roleId,
             userType: userTypeDetected,
             schoolId: user?.schoolId,
@@ -79,20 +95,18 @@ class AuthService {
 
         const token = await this.authHelper.generateLoginToken(payload);
 
-        // Get permissions if user has a role
         let permissions: string[] = [];
         if (user.role?.RolePermission) {
             permissions = user.role.RolePermission.map((rp: { permission: { action: string } }) => rp.permission.action);
         }
 
-        // Format user response based on type
-        const userResponse = await this.formatUserResponse(user, token, userTypeDetected, permissions);
+        await this.storeUserInRedis(user.id);
 
+        const userResponse = await this.formatUserResponse(user, token, userTypeDetected, permissions);
         return userResponse;
     }
 
     private async findUserByEmail(email: string): Promise<any> {
-        // Try to find user in all tables
         let user = await this.authRepositories.findByEmail(email);
         if (user) return user;
 
@@ -102,18 +116,19 @@ class AuthService {
         return null;
     }
 
-    private detectUserType(user: any): 'staff' | 'parent' {
-        if (user.staffLogin) return 'staff';
-        if (user.parentLogin) return 'parent';
+    private detectUserType(user: any): 'staff' | 'parent' | 'student' | 'other' {
+        const staffRoles = ['800', '801', '802', '803', '807'];
+        const parentRole = ['805'];
+        const studentRole = ['804'];
+
+        if (staffRoles.includes(user.roleId)) return 'staff';
+        if (parentRole.includes(user.roleId)) return 'parent';
+        if (studentRole.includes(user.roleId)) return 'student';
         
-        // Fallback based on table structure
-        if (user.roleId && user.schoolId) return 'staff';
-        if (user.phone && user.roleId) return 'parent';
-        
-        return 'staff'; // Default fallback
+        return 'other';
     }
 
-    private async formatUserResponse(user: any, token: string, userType: 'staff' | 'parent', permissions: string[]): Promise<any> {
+    private async formatUserResponse(user: any, token: string, userType: 'staff' | 'parent' | 'student' | 'other', permissions: string[]): Promise<any> {
         const baseUserData: any = {
             id: user.id,
             email: user.email,
@@ -124,9 +139,9 @@ class AuthService {
             userType: userType,
             schoolId: user?.schoolId,
             roleId: user?.roleId,
+            firstTimeLogin: true,
         };
 
-        // Add type-specific data
         switch (userType) {
             case 'staff':
                 baseUserData.role = user.role?.name;
@@ -167,7 +182,6 @@ class AuthService {
                 throw new AuthError(HttpStatusCode.BadRequest, responseMessage.InvalidEmail.message);
             }
 
-            // Validate staff type and subject assignments
             if (user.type === StaffType.SUBJECT_TEACHER && (!user.subjects || user.subjects.length === 0)) {
                 throw new AuthError(HttpStatusCode.BadRequest, "Subject teachers must have at least one subject assigned");
             }
@@ -176,9 +190,6 @@ class AuthService {
                 throw new AuthError(HttpStatusCode.BadRequest, "Only subject teachers can have subjects assigned");
             }
 
-            // For now, only staff registration is supported
-            // Student and parent registration would need different logic
-            // Get school shortName for registration number generation
             const school = await this.authRepositories.getSchoolById(user.schoolId);
             if (!school) {
                 throw new AuthError(HttpStatusCode.NotFound, "School not found");
@@ -230,9 +241,29 @@ class AuthService {
         }
     }
 
+    async refreshToken(email: string): Promise<any> {
+        try {
+            const user = await this.findUserByEmail(email);
+            if(!user) throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+
+            const payload = {
+                id: user?.id,
+                email: user?.email,
+                role: user?.roleId,
+                userType: this.detectUserType(user),
+                schoolId: user?.schoolId
+            };
+
+            const token = await this.authHelper.generateLoginToken(payload);
+            return token;
+        } catch (error) {
+            throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+        }
+    }
+
     async logout(userId: string): Promise<any> {
         try {
-            // No need to manually delete from Redis - repository handles this
+            await this.redis.delete(`user:${userId}`);
             return {
                 status: true,
                 message: "User logged out successfully",
