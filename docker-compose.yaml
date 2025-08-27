@@ -4,25 +4,136 @@ services:
     container_name: flexdesk-backend
     restart: unless-stopped
     environment:
+      # Node.js Configuration
       - NODE_NO_WARNINGS=${NODE_NO_WARNINGS}
       - PORT=${PORT}
-      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
       - ENV=${ENV}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=${JWT_EXPIRATION}
-      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+      
+      # Database Configuration
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      
+      # Vector Database Configuration (for RAG)
+      - VECTOR_DB_HOST=${VECTOR_DB_HOST:-${DB_HOST}}
+      - VECTOR_DB_PORT=${VECTOR_DB_PORT:-${DB_PORT}}
+      - VECTOR_DB_NAME=${VECTOR_DB_NAME:-${DB_NAME}}
+      - VECTOR_DB_USER=${VECTOR_DB_USER:-${DB_USER}}
+      - VECTOR_DB_PASSWORD=${VECTOR_DB_PASSWORD:-${DB_PASSWORD}}
+      - VECTOR_DB_SSL=${VECTOR_DB_SSL:-false}
+      
+      # Redis Configuration
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_USER=${REDIS_USER}
+      
+      # JWT Configuration
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+      
+      # AI/LLM Configuration
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_BASE_URL=${LLM_BASE_URL}
+      
+      # OpenAI Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4}
+      
+      # Alternative LLM Providers
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      
+      # RAG Configuration
+      - RAG_CHUNK_SIZE=${RAG_CHUNK_SIZE:-1000}
+      - RAG_CHUNK_OVERLAP=${RAG_CHUNK_OVERLAP:-200}
+      - RAG_MAX_RESULTS=${RAG_MAX_RESULTS:-5}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-ada-002}
+      
+      # Twilio Configuration
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - TWILIO_WEBHOOK_BASE_URL=${TWILIO_WEBHOOK_BASE_URL}
+      
+      # Twilio Voice Settings
+      - TWILIO_VOICE_LANGUAGE=${TWILIO_VOICE_LANGUAGE:-en-US}
+      - TWILIO_VOICE_GENDER=${TWILIO_VOICE_GENDER:-dynamic}
+      - TWILIO_VOICE_SPEED=${TWILIO_VOICE_SPEED:-normal}
+      
+      # Email Configuration
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      
+      # Security Configuration
+      - SECURITY_RISK_THRESHOLD=${SECURITY_RISK_THRESHOLD:-0.7}
+      - MAX_SUSPICIOUS_ACTIVITY=${MAX_SUSPICIOUS_ACTIVITY:-5}
+      - BLOCK_DURATION_DAYS=${BLOCK_DURATION_DAYS:-7}
+      
+      # Payment Configuration
+      - PAYMENT_GATEWAY_API_KEY=${PAYMENT_GATEWAY_API_KEY}
+      - PAYMENT_GATEWAY_SECRET=${PAYMENT_GATEWAY_SECRET}
+      - PAYMENT_CURRENCY=${PAYMENT_CURRENCY:-NGN}
+      - PAYMENT_WEBHOOK_SECRET=${PAYMENT_WEBHOOK_SECRET}
+      
+      # Call Configuration
+      - MAX_CALL_DURATION=${MAX_CALL_DURATION:-1800}
+      - CALL_RECORDING_ENABLED=${CALL_RECORDING_ENABLED:-true}
+      - CALL_QUALITY_MONITORING=${CALL_QUALITY_MONITORING:-true}
+      
+      # Datadog Configuration
       - DATADOG_API_KEY=${DATADOG_API_KEY}
       - DATADOG_APP_KEY=${DATADOG_APP_KEY}
       - DD_AGENT_HOST=datadog-agent
       - DD_AGENT_PORT=${DD_AGENT_PORT}
+      
+      # MCP Configuration
+      - MCP_ENABLED=${MCP_ENABLED:-true}
+      - MCP_SERVER_URL=${MCP_SERVER_URL}
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN}
+      
+      # Logging Configuration
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_FORMAT=${LOG_FORMAT:-json}
+      - ENABLE_DEBUG_LOGGING=${ENABLE_DEBUG_LOGGING:-false}
+      
+      # Performance Configuration
+      - MAX_CONCURRENT_CALLS=${MAX_CONCURRENT_CALLS:-10}
+      - CALL_TIMEOUT_SECONDS=${CALL_TIMEOUT_SECONDS:-300}
+      - AGENT_RESPONSE_TIMEOUT=${AGENT_RESPONSE_TIMEOUT:-30}
+      
+      # Feature Flags
+      - ENABLE_VOICE_ANALYSIS=${ENABLE_VOICE_ANALYSIS:-true}
+      - ENABLE_SENTIMENT_ANALYSIS=${ENABLE_SENTIMENT_ANALYSIS:-true}
+      - ENABLE_MULTI_LANGUAGE=${ENABLE_MULTI_LANGUAGE:-false}
+      - ENABLE_CALL_TRANSCRIPTION=${ENABLE_CALL_TRANSCRIPTION:-true}
+      
+      # External Services
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+      
+      # Monitoring and Health Checks
+      - HEALTH_CHECK_ENDPOINT=${HEALTH_CHECK_ENDPOINT:-/api/v2/health}
+      - METRICS_ENDPOINT=${METRICS_ENDPOINT:-/api/v2/metrics}
+      - READINESS_ENDPOINT=${READINESS_ENDPOINT:-/api/v2/ready}
+      
+      # Development/Testing
+      - NODE_ENV=${NODE_ENV:-production}
+      - DEBUG=${DEBUG:-false}
+      - TESTING_MODE=${TESTING_MODE:-false}
+      
     env_file:
       - .env
     depends_on:
