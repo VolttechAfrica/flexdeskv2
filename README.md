@@ -70,7 +70,7 @@ An AI-powered web application for school administration and learning management,
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Twilio Voice  │    │   Fastify API   │    │   PostgreSQL    │
+│   Agent         │    │   Fastify API   │    │   PostgreSQL    │
 │   Integration   │◄──►│   Server        │◄──►│   + pgvector    │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │
