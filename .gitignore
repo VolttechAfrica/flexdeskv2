@@ -12,3 +12,4 @@ logs
 terraform/.terraform
 *.terraform
 .terraform
+env.example

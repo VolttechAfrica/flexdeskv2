@@ -14,62 +14,33 @@ class UserController {
         this.userService = new userService(app, createUserRepository(app));
     }
 
-    async updateOboardingInfoStepOne(request: FastifyRequest, reply: FastifyReply) {
+    async completeOnboarding(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-            const data = request.body;
-            const result = await this.userService.updateOboardingInfoStepOne(data, request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
-        } catch (error: any) {
-            throw error;
-        }
-    }
-
-    async updateOboardingInfoStepTwo(request: FastifyRequest, reply: FastifyReply) {
-
-        try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-            const data = request.body;
-            const result = await this.userService.updateOboardingInfoStepTwo(data, request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
-        } catch (error: any) {
-            throw error;
-        }
-    }
-
-    async getEducationalQualification(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-            const result = await this.userService.getEducationalQualification(request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
-        } catch (error: any) {
-            throw error;
-        }
-    }
-
-    async updateEducationalQualification(request: FastifyRequest, reply: FastifyReply) {
-        try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            
             const data = request.body as any;
-            delete data.userId;
-            const result = await this.userService.updateEducationalQualification(data, request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
+            const result = await this.userService.completeOnboarding(data, request.user.id);
+            
+            return reply.status(HttpStatusCode.Ok).send({
+                ...result,
+                token: request.user.token
+            });
         } catch (error: any) {
             throw error;
         }
     }
 
-    async updateUserProfilePicture(request: FastifyRequest, reply: FastifyReply) {
+    async updateProfilePicture(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-            const data = request.body as any;
-            const result = await this.userService.updateUserProfilePicture(data, request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
+            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            
+            const { profilePicture } = request.body as any;
+            const result = await this.userService.updateProfilePicture(profilePicture, request.user.id);
+            
+            return reply.status(HttpStatusCode.Ok).send({
+                ...result,
+                token: request.user.token
+            });
         } catch (error: any) {
             throw error;
         }
@@ -77,10 +48,14 @@ class UserController {
 
     async deleteFirstTimeLogin(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if(!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            
             const result = await this.userService.deleteFirstTimeLogin(request.user.id);
-            result.token = request.user.token;
-            return reply.status(HttpStatusCode.Ok).send(result);
+            
+            return reply.status(HttpStatusCode.Ok).send({
+                ...result,
+                token: request.user.token
+            });
         } catch (error: any) {
             throw error;
         }

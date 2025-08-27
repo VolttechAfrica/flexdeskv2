@@ -28,15 +28,20 @@ class AuthController {
           HttpStatusCode.BadRequest,
           "Invalid request, provide a valid email and password"
         );
+      
       const loginData = await this.authService.login({ email, password });
-      if (!loginData.data.staffId)
-        throw new AuthError(HttpStatusCode.BadRequest, "Staff ID not found");
+      
+      // Log user activity based on detected user type
+      const userId = loginData.data.user.id;
+      const userTypeDetected = loginData.data.userType;
+      
       await this.userActivityService.createUserActivity(
-        loginData.data.staffId,
-        "Successfully logged in",
+        userId,
+        `Successfully logged in as ${userTypeDetected}`,
         request.ip,
         request.headers["user-agent"] || ""
       );
+      
       return reply.status(HttpStatusCode.Ok).send(loginData);
     } catch (error: any) {
       console.log(error);
@@ -60,13 +65,31 @@ class AuthController {
           HttpStatusCode.BadRequest,
           "Invalid request, provide a valid user"
         );
+
+      if (!user.firstName || !user.lastName || !user.email || !user.roleId || !user.schoolId) {
+        throw new AuthError(
+          HttpStatusCode.BadRequest,
+          "Missing required fields: firstName, lastName, email, roleId, and schoolId are required"
+        );
+      }
+
+      // Validate staff type and subjects if provided
+      if (user.type === 'SUBJECT_TEACHER' && (!user.subjects || user.subjects.length === 0)) {
+        throw new AuthError(
+          HttpStatusCode.BadRequest,
+          "Subject teachers must have at least one subject assigned"
+        );
+      }
+
       const registerData = await this.authService.register({ user });
+      
       await this.userActivityService.createUserActivity(
         request.user.id as string,
-        "Successfully registered a new user",
+        `Successfully registered a new ${user.type || 'staff'} user: ${user.email}`,
         request.ip,
         request.headers["user-agent"] || ""
       );
+      
       return reply.status(HttpStatusCode.Ok).send(registerData);
     } catch (error: any) {
       throw error;
@@ -80,7 +103,16 @@ class AuthController {
           HttpStatusCode.Unauthorized,
           "Unauthorized, please login to continue"
         );
+      
       const logoutData = await this.authService.logout(request.user.id as string);
+      
+      await this.userActivityService.createUserActivity(
+        request.user.id as string,
+        "Successfully logged out",
+        request.ip,
+        request.headers["user-agent"] || ""
+      );
+      
       return reply.status(HttpStatusCode.Ok).send(logoutData);
     } catch (error: any) {
       throw error;

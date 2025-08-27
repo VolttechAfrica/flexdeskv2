@@ -4,120 +4,121 @@ import UserController from "../controllers/user.controller.js";
 async function userRoutes(app: FastifyInstance) {
     const userController = new UserController(app);
 
+    // Complete onboarding with all information
     app.route({
         method: "POST",
         preHandler: [app.authenticate],
-        url: "/personal-information",
+        url: "/onboarding",
         schema: {
             body: {
                 type: "object",
                 properties: {
-                    firstName: { type: "string" },
-                    lastName: { type: "string" },
-                    otherName: { type: "string" },
-                    gender: { type: "string" },
-                    dateOfBirth: { type: "string" },
-                    phoneNumber: { type: "string" },
-                },
-                required: ["firstName", "lastName", "otherName", "gender", "dateOfBirth", "phoneNumber"],
+                    profile: {
+                        type: "object",
+                        properties: {
+                            profilePicture: { type: "string" },
+                            dateOfBirth: { type: "string" },
+                            gender: { type: "string" },
+                            phoneNumber: { type: "string" },
+                            address: { type: "string" },
+                            state: { type: "string" },
+                            city: { type: "string" },
+                            lga: { type: "string" }
+                        }
+                    },
+                    qualifications: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                qualification: { type: "string" },
+                                institution: { type: "string" },
+                                course: { type: "string" },
+                                grade: { type: "string" },
+                                yearObtained: { type: "string" }
+                            },
+                            required: ["qualification", "institution", "course"]
+                        }
+                    },
+                    emergencyContact: {
+                        type: "object",
+                        properties: {
+                            name: { type: "string" },
+                            relationship: { type: "string" },
+                            phoneNumber: { type: "string" }
+                        },
+                        required: ["name", "relationship", "phoneNumber"]
+                    },
+                    notifications: {
+                        type: "object",
+                        properties: {
+                            email: { type: "boolean" },
+                            sms: { type: "boolean" },
+                            push: { type: "boolean" }
+                        }
+                    }
+                }
             },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        status: { type: "boolean" },
+                        message: { type: "string" },
+                        token: { type: "string" }
+                    }
+                }
+            }
         },
-        handler: userController.updateOboardingInfoStepOne.bind(userController),
-    })
+        handler: userController.completeOnboarding.bind(userController),
+    });
 
-    app.route({
-        method: "POST",
-        preHandler: [app.authenticate],
-        url: "/contact-address",
-        schema: {
-            body: {
-                type: "object",
-                properties: {
-                    address: { type: "string" },
-                    state: { type: "string" },
-                    city: { type: "string" },
-                    lga: { type: "string" },
-                },
-                required: ["address", "state", "city", "lga"],
-            },
-        },
-        handler: userController.updateOboardingInfoStepTwo.bind(userController),
-    })
-
-    app.route({
-        method: "GET",
-        preHandler: [app.authenticate],
-        url: "/qualification/:userId",
-        schema: {
-            params: {
-                type: "object",
-                properties: {
-                    userId: { type: "string" },
-                },
-            },
-        },
-        handler: userController.getEducationalQualification.bind(userController),
-    })
-
-    app.route({
-        method: "POST",
-        preHandler: [app.authenticate],
-        url: "/qualification",
-        schema: {
-            body: {
-                type: "object",
-                properties: {
-                    qualification: { type: "string" },
-                    institution: { type: "string" },
-                    course: { type: "string" },
-                    grade: { type: "string" },
-                    yearObtained: { type: "string" },
-                },
-                required: ["qualification", "institution", "course", "grade", "yearObtained"],
-            },
-        },
-        handler: userController.updateEducationalQualification.bind(userController),
-    })
-
+    // Update profile picture separately
     app.route({
         method: "PUT",
         preHandler: [app.authenticate],
-        url: "/profile-picture/:userId",
+        url: "/profile-picture",
         schema: {
-            params: {
-                type: "object",
-                properties: {
-                    userId: { type: "string" },
-                },
-                required: ["userId"],
-            },
             body: {
                 type: "object",
                 properties: {
-                    profilePicture: { type: "string" },
+                    profilePicture: { type: "string" }
                 },
-                required: ["profilePicture"],
+                required: ["profilePicture"]
             },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        status: { type: "boolean" },
+                        message: { type: "string" },
+                        token: { type: "string" }
+                    }
+                }
+            }
         },
-        handler: userController.updateUserProfilePicture.bind(userController),
-    })
+        handler: userController.updateProfilePicture.bind(userController),
+    });
 
+    // Complete first-time login process
     app.route({
         method: "POST",
         preHandler: [app.authenticate],
-        url: "/first-time-login",
+        url: "/complete-onboarding",
         schema: {
-            body: {
-                type: "object",
-                properties: {
-                    staffId: { type: "string" },
-                },
-                required: ["staffId"],
-            },
+            response: {
+                200: {
+                    type: "object",
+                    properties: {
+                        status: { type: "boolean" },
+                        message: { type: "string" },
+                        token: { type: "string" }
+                    }
+                }
+            }
         },
         handler: userController.deleteFirstTimeLogin.bind(userController),
-    })
-    
+    });
 }
 
 export default userRoutes;

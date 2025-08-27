@@ -1,0 +1,1311 @@
+openapi: 3.0.0
+info:
+  title: FlexDesk School Management API
+  description: |
+    Comprehensive API for school management system including authentication, user management, 
+    task management, support tickets, and school operations.
+    
+    ## Features
+    - **Authentication**: Secure login/logout with role-based access control
+    - **User Management**: Staff, student, and parent management
+    - **Task Management**: Task creation, assignment, and tracking
+    - **Support System**: Ticket management and support workflows
+    - **School Operations**: Class management, subject assignments, and more
+    
+    ## Authentication
+    Most endpoints require authentication via JWT token in the Authorization header:
+    `Authorization: Bearer <your-jwt-token>`
+    
+    ## Rate Limiting
+    API endpoints are rate-limited for security. Please implement proper error handling.
+    
+    ## Error Handling
+    All endpoints return consistent error responses with appropriate HTTP status codes.
+    
+  version: 1.1.0
+  contact:
+    name: FlexDesk Support
+    email: support@flexdesk.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api/v2
+    description: Development server
+  - url: https://flexdesk.ng/api/v2
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: User Management
+    description: Staff, student, and parent management
+  - name: Task Management
+    description: Task creation, assignment, and tracking
+  - name: Support System
+    description: Support ticket management
+  - name: School Operations
+    description: School, class, and subject management
+  - name: Health
+    description: System health and status endpoints
+
+paths:
+  # ========================================
+  # AUTHENTICATION ENDPOINTS
+  # ========================================
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: |
+        Authenticate user and return JWT token. System automatically detects user type
+        (staff/parent) based on email. No need to specify user type.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              staff_login:
+                summary: Staff Login
+                value:
+                  email: "teacher@school.com"
+                  password: "password123"
+              parent_login:
+                summary: Parent Login
+                value:
+                  email: "parent@email.com"
+                  password: "password123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              examples:
+                staff_success:
+                  summary: Staff Login Success
+                  value:
+                    status: true
+                    message: "Login successful"
+                    data:
+                      user:
+                        id: "staff-uuid"
+                        email: "teacher@school.com"
+                        firstName: "John"
+                        lastName: "Doe"
+                        userType: "staff"
+                        type: "CLASS_ROOM_TEACHER"
+                        role: "teacher"
+                        schoolId: "school-uuid"
+                        permissions: ["read:students", "write:grades"]
+                      token: "jwt-token-here"
+                      userType: "staff"
+                      permissions: ["read:students", "write:grades"]
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User Logout
+      description: Logout user and invalidate session
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register New Staff Member
+      description: |
+        Register a new staff member. Requires authentication and 'manage_staff' permission.
+        Staff type determines what additional fields are required.
+      operationId: registerStaff
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              admin_staff:
+                summary: Admin Staff Registration
+                value:
+                  user:
+                    firstName: "Admin"
+                    lastName: "User"
+                    email: "admin@school.com"
+                    roleId: "admin-role-uuid"
+                    schoolId: "school-uuid"
+                    type: "ADMIN"
+              class_teacher:
+                summary: Class Teacher Registration
+                value:
+                  user:
+                    firstName: "Class"
+                    lastName: "Teacher"
+                    email: "classteacher@school.com"
+                    roleId: "teacher-role-uuid"
+                    schoolId: "school-uuid"
+                    type: "CLASS_ROOM_TEACHER"
+                    classId: "class-uuid"
+                    classArmId: "arm-uuid"
+              subject_teacher:
+                summary: Subject Teacher Registration
+                value:
+                  user:
+                    firstName: "Subject"
+                    lastName: "Teacher"
+                    email: "subjectteacher@school.com"
+                    roleId: "teacher-role-uuid"
+                    schoolId: "school-uuid"
+                    type: "SUBJECT_TEACHER"
+                    subjects: ["math-uuid", "science-uuid"]
+      responses:
+        '200':
+          description: Staff registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          description: Invalid request or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # USER MANAGEMENT ENDPOINTS
+  # ========================================
+  /user/profile:
+    get:
+      tags:
+        - User Management
+      summary: Get User Profile
+      description: Retrieve current user's profile information
+      operationId: getUserProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - User Management
+      summary: Update User Profile
+      description: Update current user's profile information
+      operationId: updateUserProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateProfileResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # TASK MANAGEMENT ENDPOINTS
+  # ========================================
+  /tasks:
+    get:
+      tags:
+        - Task Management
+      summary: Get Tasks
+      description: Retrieve list of tasks with optional filtering
+      operationId: getTasks
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by task status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED, ON_HOLD]
+        - name: priority
+          in: query
+          description: Filter by task priority
+          required: false
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, URGENT]
+        - name: schoolId
+          in: query
+          description: Filter by school ID
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Task Management
+      summary: Create Task
+      description: Create a new task
+      operationId: createTask
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tasks/{taskId}:
+    get:
+      tags:
+        - Task Management
+      summary: Get Task by ID
+      description: Retrieve a specific task by its ID
+      operationId: getTaskById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          description: Task ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # SUPPORT SYSTEM ENDPOINTS
+  # ========================================
+  /support/tickets:
+    post:
+      tags:
+        - Support System
+      summary: Create Support Ticket
+      description: Create a new support ticket (public endpoint, no auth required)
+      operationId: createSupportTicket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSupportTicketRequest'
+      responses:
+        '201':
+          description: Support ticket created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - Support System
+      summary: Get Support Tickets
+      description: Retrieve list of support tickets (admin only)
+      operationId: getSupportTickets
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by ticket status
+          required: false
+          schema:
+            type: string
+            enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
+        - name: priority
+          in: query
+          description: Filter by ticket priority
+          required: false
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, URGENT]
+        - name: category
+          in: query
+          description: Filter by ticket category
+          required: false
+          schema:
+            type: string
+            enum: [TECHNICAL, BILLING, GENERAL, FEATURE_REQUEST, OTHER]
+      responses:
+        '200':
+          description: Support tickets retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicketListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # SCHOOL OPERATIONS ENDPOINTS
+  # ========================================
+  /schools:
+    get:
+      tags:
+        - School Operations
+      summary: Get Schools
+      description: Retrieve list of schools
+      operationId: getSchools
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Schools retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schools/{schoolId}:
+    get:
+      tags:
+        - School Operations
+      summary: Get School by ID
+      description: Retrieve a specific school by its ID
+      operationId: getSchoolById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: schoolId
+          in: path
+          required: true
+          description: School ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: School retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchoolResponse'
+        '404':
+          description: School not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========================================
+  # HEALTH ENDPOINTS
+  # ========================================
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health Check
+      description: Check system health and status
+      operationId: healthCheck
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+# ========================================
+# COMPONENTS & SCHEMAS
+# ========================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from login endpoint
+
+  schemas:
+    # User Profile Schemas
+    UserProfileResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User profile retrieved successfully"
+        data:
+          $ref: '#/components/schemas/UserData'
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          description: First name
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          description: Last name
+          example: "Doe"
+        otherName:
+          type: string
+          description: Optional middle name
+          example: "Michael"
+        phone:
+          type: string
+          description: Phone number
+          example: "+1234567890"
+        address:
+          type: string
+          description: Address
+          example: "123 Main St"
+        state:
+          type: string
+          description: State
+          example: "California"
+        lga:
+          type: string
+          description: Local Government Area
+          example: "Los Angeles"
+        city:
+          type: string
+          description: City
+          example: "Los Angeles"
+
+    UpdateProfileResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Profile updated successfully"
+        data:
+          $ref: '#/components/schemas/UserData'
+
+    # Authentication Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "user@school.com"
+        password:
+          type: string
+          minLength: 1
+          description: User's password
+          example: "password123"
+
+    LoginResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Login successful"
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/UserData'
+            token:
+              type: string
+              description: JWT token for authentication
+            userType:
+              type: string
+              enum: [staff, parent]
+            permissions:
+              type: array
+              items:
+                type: string
+              example: ["read:students", "write:grades"]
+
+    LogoutResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User logged out successfully"
+
+    RegisterRequest:
+      type: object
+      required:
+        - user
+      properties:
+        user:
+          $ref: '#/components/schemas/RegisterUserData'
+
+    RegisterUserData:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - roleId
+        - schoolId
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          description: First name of the staff member
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          description: Last name of the staff member
+          example: "Doe"
+        otherName:
+          type: string
+          description: Optional middle name or other names
+          example: "Michael"
+        email:
+          type: string
+          format: email
+          description: Email address for the staff member
+          example: "john.doe@school.com"
+        roleId:
+          type: string
+          description: Role ID from the roles table
+          example: "role-uuid-here"
+        schoolId:
+          type: string
+          description: School ID where the staff member will work
+          example: "school-uuid-here"
+        staffId:
+          type: string
+          description: Optional custom staff ID. If not provided, system will generate one
+          example: "STAFF001"
+        type:
+          type: string
+          enum: [ADMIN, CLASS_ROOM_TEACHER, SUBJECT_TEACHER, OTHER]
+          description: Staff type
+          example: "CLASS_ROOM_TEACHER"
+        classId:
+          type: string
+          description: Class ID for class room teachers
+          example: "class-uuid-here"
+        classArmId:
+          type: string
+          description: Class arm ID for class room teachers
+          example: "arm-uuid-here"
+        subjects:
+          type: array
+          items:
+            type: string
+          description: Array of subject IDs. Required for SUBJECT_TEACHER type
+          example: ["math-uuid", "science-uuid"]
+
+    RegisterResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "User created successfully"
+        data:
+          type: object
+          properties:
+            staffId:
+              type: string
+              description: Generated staff ID
+              example: "STAFF001"
+            email:
+              type: string
+              description: Staff email
+              example: "john.doe@school.com"
+            type:
+              type: string
+              description: Staff type
+              example: "CLASS_ROOM_TEACHER"
+
+    # User Management Schemas
+    UserData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "user-uuid-here"
+        email:
+          type: string
+          example: "user@school.com"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        otherName:
+          type: string
+          example: "Michael"
+        status:
+          type: string
+          example: "ACTIVE"
+        userType:
+          type: string
+          enum: [staff, parent]
+        schoolId:
+          type: string
+          example: "school-uuid-here"
+        roleId:
+          type: string
+          example: "role-uuid-here"
+        type:
+          type: string
+          enum: [ADMIN, CLASS_ROOM_TEACHER, SUBJECT_TEACHER, OTHER]
+          example: "CLASS_ROOM_TEACHER"
+        role:
+          type: string
+          example: "teacher"
+        school:
+          $ref: '#/components/schemas/SchoolData'
+        profile:
+          $ref: '#/components/schemas/UserProfileData'
+        assignedClasses:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignedClassData'
+        assignedSubjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignedSubjectData'
+        phone:
+          type: string
+          example: "+1234567890"
+        address:
+          type: string
+          example: "123 Main St"
+        state:
+          type: string
+          example: "California"
+        lga:
+          type: string
+          example: "Los Angeles"
+        city:
+          type: string
+          example: "Los Angeles"
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/StudentData'
+
+    UserProfileData:
+      type: object
+      properties:
+        profilePicture:
+          type: string
+          example: "https://example.com/profile.jpg"
+        dateOfBirth:
+          type: string
+          example: "1990-01-01"
+        phoneNumber:
+          type: string
+          example: "+1234567890"
+        address:
+          type: string
+          example: "123 Main St"
+        state:
+          type: string
+          example: "California"
+        lga:
+          type: string
+          example: "Los Angeles"
+
+    # Task Management Schemas
+    CreateTaskRequest:
+      type: object
+      required:
+        - name
+        - description
+        - startDate
+        - endDate
+        - schoolId
+        - termId
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Task name
+          example: "Prepare exam questions"
+        description:
+          type: string
+          description: Task description
+          example: "Create comprehensive exam questions for Mathematics"
+        startDate:
+          type: string
+          format: date-time
+          description: Task start date
+          example: "2024-01-01T00:00:00Z"
+        endDate:
+          type: string
+          format: date-time
+          description: Task end date
+          example: "2024-01-31T23:59:59Z"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, URGENT]
+          default: MEDIUM
+          description: Task priority
+          example: "HIGH"
+        schoolId:
+          type: string
+          description: School ID
+          example: "school-uuid-here"
+        termId:
+          type: string
+          description: Term ID
+          example: "term-uuid-here"
+        notes:
+          type: string
+          description: Additional notes
+          example: "Include both theory and practical questions"
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "task-uuid-here"
+        name:
+          type: string
+          example: "Prepare exam questions"
+        description:
+          type: string
+          example: "Create comprehensive exam questions for Mathematics"
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED, ON_HOLD]
+          example: "PENDING"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, URGENT]
+          example: "HIGH"
+        startDate:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        endDate:
+          type: string
+          format: date-time
+          example: "2024-01-31T23:59:59Z"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        notes:
+          type: string
+          example: "Include both theory and practical questions"
+        creator:
+          $ref: '#/components/schemas/UserData'
+        school:
+          $ref: '#/components/schemas/SchoolData'
+        term:
+          $ref: '#/components/schemas/TermData'
+        taskMembers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskMemberData'
+        subtasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubTaskData'
+
+    TaskListResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Tasks retrieved successfully"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+
+    # Support System Schemas
+    CreateSupportTicketRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - message
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          description: First name
+          example: "John"
+        lastName:
+          type: string
+          minLength: 1
+          description: Last name
+          example: "Doe"
+        email:
+          type: string
+          format: email
+          description: Email address
+          example: "john.doe@email.com"
+        phone:
+          type: string
+          description: Phone number
+          example: "+1234567890"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Support message
+          example: "I need help with the login system"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, URGENT]
+          default: MEDIUM
+          description: Ticket priority
+          example: "MEDIUM"
+        category:
+          type: string
+          enum: [TECHNICAL, BILLING, GENERAL, FEATURE_REQUEST, OTHER]
+          default: GENERAL
+          description: Ticket category
+          example: "TECHNICAL"
+
+    SupportTicketResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "ticket-uuid-here"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Doe"
+        email:
+          type: string
+          example: "john.doe@email.com"
+        phone:
+          type: string
+          example: "+1234567890"
+        message:
+          type: string
+          example: "I need help with the login system"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, URGENT]
+          example: "MEDIUM"
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
+          example: "PENDING"
+        category:
+          type: string
+          enum: [TECHNICAL, BILLING, GENERAL, FEATURE_REQUEST, OTHER]
+          example: "TECHNICAL"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+
+    SupportTicketListResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Support tickets retrieved successfully"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportTicketResponse'
+
+    # School Operations Schemas
+    SchoolData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "school-uuid-here"
+        name:
+          type: string
+          example: "Springfield High School"
+        shortName:
+          type: string
+          example: "SHS"
+        email:
+          type: string
+          example: "info@springfield.edu"
+        phone:
+          type: string
+          example: "+1234567890"
+        address:
+          type: string
+          example: "123 Education St"
+        slogan:
+          type: string
+          example: "Excellence in Education"
+        logo:
+          type: string
+          example: "https://example.com/logo.png"
+        website:
+          type: string
+          example: "https://springfield.edu"
+        state:
+          type: string
+          example: "California"
+        lga:
+          type: string
+          example: "Los Angeles"
+        country:
+          type: string
+          example: "USA"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, BLOCKED]
+          example: "ACTIVE"
+
+    SchoolListResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Schools retrieved successfully"
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchoolData'
+
+    SchoolResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "School retrieved successfully"
+        data:
+          $ref: '#/components/schemas/SchoolData'
+
+    # Additional Schemas
+    TermData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "term-uuid-here"
+        name:
+          type: string
+          example: "First Term"
+        term:
+          type: integer
+          example: 1
+        year:
+          type: string
+          example: "2024"
+        startDate:
+          type: string
+          example: "2024-01-01"
+        endDate:
+          type: string
+          example: "2024-03-31"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          example: "ACTIVE"
+
+    AssignedClassData:
+      type: object
+      properties:
+        classId:
+          type: string
+          example: "class-uuid-here"
+        classArmId:
+          type: string
+          example: "arm-uuid-here"
+
+    AssignedSubjectData:
+      type: object
+      properties:
+        subject:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "subject-uuid-here"
+            name:
+              type: string
+              example: "Mathematics"
+            code:
+              type: string
+              example: "MATH101"
+
+    TaskMemberData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "member-uuid-here"
+        role:
+          type: string
+          enum: [ASSIGNEE, REVIEWER, OBSERVER]
+          example: "ASSIGNEE"
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED]
+          example: "PENDING"
+        member:
+          $ref: '#/components/schemas/UserData'
+
+    SubTaskData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "subtask-uuid-here"
+        name:
+          type: string
+          example: "Create theory questions"
+        status:
+          type: string
+          enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED, ON_HOLD]
+          example: "PENDING"
+        notes:
+          type: string
+          example: "Focus on algebra and calculus"
+        tagTo:
+          type: string
+          example: "Mathematics Department"
+
+    StudentData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "student-uuid-here"
+        firstName:
+          type: string
+          example: "Jane"
+        lastName:
+          type: string
+          example: "Smith"
+        class:
+          $ref: '#/components/schemas/ClassData'
+        classArm:
+          $ref: '#/components/schemas/ClassArmData'
+        school:
+          $ref: '#/components/schemas/SchoolData'
+
+    ClassData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "class-uuid-here"
+        name:
+          type: string
+          example: "Class 10"
+        level:
+          type: integer
+          example: 10
+
+    ClassArmData:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "arm-uuid-here"
+        name:
+          type: string
+          example: "A"
+
+    # Error Response Schema
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Error message here"
+        error:
+          type: string
+          example: "Detailed error description"
+
+    # Health Response Schema
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00Z"
+        uptime:
+          type: number
+          example: 3600
+        version:
+          type: string
+          example: "1.1.0" 

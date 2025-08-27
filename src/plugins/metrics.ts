@@ -18,6 +18,11 @@ const metricsPlugin: FastifyPluginAsync = async (fastify) => {
   });
 
   fastify.addHook('onResponse', async (request, reply) => {
+    // Safety check: ensure metrics exist before accessing
+    if (!request.metrics || typeof request.metrics.startTime !== 'number') {
+      return; // Skip metrics recording if metrics are not available
+    }
+    
     const duration = Date.now() - request.metrics.startTime;
     
     // Record request metrics (fire and forget)

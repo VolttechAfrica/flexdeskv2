@@ -5,10 +5,42 @@ import { UserError } from "../utils/errorhandler.js";
 import RedisService from "./redis.service.js";
 import UserResponse from "../utils/loginResponse.js";
 
+interface OnboardingData {
+    profile: {
+        email: string;
+        profilePicture?: string;
+        dateOfBirth?: string;
+        gender?: string;
+        phoneNumber?: string;
+        address?: string;
+        state?: string;
+        city?: string;
+        lga?: string;
+    };
+    qualifications?: Array<{
+        qualification: string;
+        institution: string;
+        course: string;
+        grade?: string;
+        yearObtained?: string;
+    }>;
+    emergencyContact?: {
+        name: string;
+        relationship: string;
+        phoneNumber: string;
+    };
+    notifications?: {
+        email: boolean;
+        sms: boolean;
+        push: boolean;
+    };
+}
+
 class UserService {
     private app: FastifyInstance;
     private userRepositories: any;
     private redis: RedisService;
+
     constructor(app: FastifyInstance, userRepositories: any) {
         this.app = app;
         this.userRepositories = userRepositories;
@@ -17,144 +49,116 @@ class UserService {
 
     async getUserInfo(staffId: string): Promise<any> {
         try {
-            let user = await this.redis.getInstance(`USER:${staffId}`);
-            if (!user) {
-                user = await this.userRepositories.getUserInfo(staffId);
-                if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-
-                user = await UserResponse(user);
-
-                await this.redis.setInstance({
-                    key: `USER:${staffId}`,
-                    value: user,
-                    ttl: 7 * 24 * 60 * 60,
-                });
-            }
-
-            return user;
+            const user = await this.userRepositories.getUserInfo(staffId);
+            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+            const userResponse = await UserResponse(user);
+            return userResponse;
 
         } catch (error) {
-            console.log(error);
+            this.app.log.error('Error getting user info:', error);
             throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
         }
     }
 
-    async updateOboardingInfoStepOne(data: any, staffId: string): Promise<any> {
+    async completeOnboarding(data: OnboardingData, staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
             if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-            const userData = {
-                ...data,
-                staffId: staffId,
+
+            const email = user?.data?.email as string;
+
+            if(!email) throw new Error("Internal server error, a value is missing")
+
+            // Update profile information
+            if (data.profile) {
+                const profileData = {
+                    ...data.profile,
+                    staffId,
+                    email
+                };
+                await this.userRepositories.updateProfile(profileData);
             }
-            const updateUser = await this.userRepositories.updateOboardingInfo(userData);
-            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
+
+            // Update qualifications
+            if (data.qualifications && data.qualifications.length > 0) {
+                for (const qualification of data.qualifications) {
+                    const qualificationData = {
+                        ...qualification,
+                        staffId
+                    };
+                    await this.userRepositories.updateEducationalQualification(qualificationData);
+                }
+            }
+
+            // Update emergency contact
+            if (data.emergencyContact) {
+                const emergencyData = {
+                    ...data.emergencyContact,
+                    staffId
+                };
+                await this.userRepositories.updateEmergencyContact(emergencyData);
+            }
+
+            // Update notification settings
+            if (data.notifications) {
+                const notificationData = {
+                    ...data.notifications,
+                    userId: staffId
+                };
+                await this.userRepositories.updateNotificationSettings(notificationData);
+            }
+
+            return {
+                status: true,
+                message: "Onboarding completed successfully"
+            };
+
+        } catch (error) {
+            this.app.log.error('Error completing onboarding:', error);
+            throw new UserError(HttpStatusCode.InternalServerError, "Failed to complete onboarding");
+        }
+    }
+
+    async updateProfilePicture(profilePicture: string, staffId: string): Promise<any> {
+        try {
+            const user = await this.getUserInfo(staffId);
+            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+
+            const userData = { profilePicture, staffId };
+            const updateUser = await this.userRepositories.updateProfilePicture(userData);
+            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to update profile picture");
+
             await this.redis.delete(`USER:${staffId}`);
+
             return {
                 status: true,
-                message: responseMessage.UserUpdated.message,
-            }
+                message: "Profile picture updated successfully"
+            };
+
         } catch (error) {
-            console.log(error);
-            throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
+            this.app.log.error('Error updating profile picture:', error);
+            throw new UserError(HttpStatusCode.InternalServerError, "Failed to update profile picture");
         }
     }
 
-    async updateOboardingInfoStepTwo(data: any, staffId: string): Promise<any> {
-        try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-            const userData = {
-                ...data,
-                staffId: staffId,
-            }
-            const updateUser = await this.userRepositories.updateOboarding2(userData);
-            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
-            await this.redis.delete(`USER:${staffId}`);
-            return {
-                status: true,
-                message: responseMessage.UserUpdated.message,
-            }
-        } catch (error) {
-            console.log(error);
-            throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
-        }
-    }
-
-    async updateEducationalQualification(data: any, staffId: string): Promise<any> {
-        try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-            const userData = {
-                ...data,
-                staffId: staffId,
-            }
-            const updateUser = await this.userRepositories.updateEducationalQualification(userData);
-            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to update educational qualification");
-            return {
-                status: true,
-                message: "Educational qualification updated successfully",
-            }
-        } catch (error) {
-            console.log(error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to update educational qualification");
-        }
-    }
-
-    async getEducationalQualification(staffId: string): Promise<any> {
-        try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-            const userData = await this.userRepositories.getEducationalQualification(staffId);
-            if (!userData) throw new UserError(HttpStatusCode.NotFound, "Educational qualification not found");
-            return {
-                status: true,
-                message: "Educational qualification fetched successfully",
-                data: userData,
-            }
-        } catch (error) {
-            console.log(error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to fetch educational qualification");
-        }
-    }
-
-    async updateUserProfilePicture(data: any, staffId: string): Promise<any> {
-        try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
-            const userData = {
-                ...data,
-                staffId: staffId,
-            }
-            const updateUser = await this.userRepositories.updateUserProfilePicture(userData);
-            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to update user profile picture");
-            await this.redis.delete(`USER:${staffId}`);
-            return {
-                status: true,
-                message: "User profile picture updated successfully",
-            }
-        } catch (error) {
-            console.log(error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to update user profile picture");
-        }
-    }
-    
     async deleteFirstTimeLogin(staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
             if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+
             const deleteUser = await this.userRepositories.deleteFirstTimeLogin(staffId);
             if (!deleteUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to delete first time login");
+
             return {
                 status: true,
-                message: "First time login deleted successfully",
-            }
+                message: "First time login deleted successfully"
+            };
+
         } catch (error) {
-            console.log(error);
+            this.app.log.error('Error deleting first time login:', error);
             throw new UserError(HttpStatusCode.InternalServerError, "Failed to delete first time login");
         }
-    }   
+    }
 }
-
 
 export default UserService;
