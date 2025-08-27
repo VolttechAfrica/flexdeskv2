@@ -93,7 +93,7 @@ class AuthService {
             schoolId: user?.schoolId,
         };
 
-        const token = await this.authHelper.generateLoginToken(payload);
+        const tokens = await this.authHelper.generateLoginToken(payload);
 
         let permissions: string[] = [];
         if (user.role?.RolePermission) {
@@ -102,7 +102,7 @@ class AuthService {
 
         await this.storeUserInRedis(user.id);
 
-        const userResponse = await this.formatUserResponse(user, token, userTypeDetected, permissions);
+        const userResponse = await this.formatUserResponse(user, tokens, userTypeDetected, permissions);
         return userResponse;
     }
 
@@ -128,7 +128,7 @@ class AuthService {
         return 'other';
     }
 
-    private async formatUserResponse(user: any, token: string, userType: 'staff' | 'parent' | 'student' | 'other', permissions: string[]): Promise<any> {
+    private async formatUserResponse(user: any, tokens: { accessToken: string; refreshToken: string }, userType: 'staff' | 'parent' | 'student' | 'other', permissions: string[]): Promise<any> {
         const baseUserData: any = {
             id: user.id,
             email: user.email,
@@ -167,7 +167,8 @@ class AuthService {
             message: "Login successful",
             data: {
                 user: baseUserData,
-                token,
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
                 userType,
                 permissions,
             }
@@ -241,29 +242,11 @@ class AuthService {
         }
     }
 
-    async refreshToken(email: string): Promise<any> {
-        try {
-            const user = await this.findUserByEmail(email);
-            if(!user) throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-
-            const payload = {
-                id: user?.id,
-                email: user?.email,
-                role: user?.roleId,
-                userType: this.detectUserType(user),
-                schoolId: user?.schoolId
-            };
-
-            const token = await this.authHelper.generateLoginToken(payload);
-            return token;
-        } catch (error) {
-            throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
-        }
-    }
-
     async logout(userId: string): Promise<any> {
         try {
-            await this.redis.delete(`user:${userId}`);
+            // Use the authorization service to properly revoke all tokens
+            await this.authHelper.forceLogout(userId);
+            
             return {
                 status: true,
                 message: "User logged out successfully",

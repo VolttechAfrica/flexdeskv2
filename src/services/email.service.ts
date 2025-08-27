@@ -57,6 +57,14 @@ class EmailService {
 
         return await this.sendEmail({ to, subject, html });
     }
+
+    async sendPaymentEmail(to: string, subject: string, html: string): Promise<boolean> {
+        return await this.sendEmail({ to, subject, html });
+    }
+
+    async sendGeneralEmail(to: string, subject: string, html: string): Promise<boolean> {
+        return await this.sendEmail({ to, subject, html });
+    }
 }
 
 export default EmailService;

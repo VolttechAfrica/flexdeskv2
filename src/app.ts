@@ -2,10 +2,7 @@ import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth.route.js";
 
 import userRoutes from "./routes/user.route.js";
-import schoolRoutes from "./routes/school.route.js";
-import studentRoutes from "./routes/student.route.js";
 import taskRoutes from "./routes/task.routes.js";
-import teacherRoutes from "./routes/teacher.route.js";
 import supportTicketRoutes from "./routes/supportTicket.routes.js";
 import cloudinaryRoutes from "./routes/cloudinary.routes.js";
 
@@ -14,7 +11,7 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import fastify, { FastifyPluginAsync } from "fastify";
 import loggerPlugin from "./plugins/logger.js";
-import jwtPlugin from "./plugins/jwtPlugin.js";
+import jwtPlugin from "./plugins/authenticationPlugin.js";
 import bcryptPlugin from "./plugins/bcryptPlugin.js";
 import redisPlugin from "./plugins/redisPlugin.js";
 import sensible from "./plugins/sensiblePlugin.js";
@@ -58,7 +55,6 @@ export const buildServer = async () => {
   });
 
  
-  // Register core plugins first
   app.register(loggerPlugin);
   app.register(redisPlugin); 
   app.register(jwtPlugin);
@@ -72,7 +68,6 @@ export const buildServer = async () => {
   });
   app.register(sensible);
 
-  // Register rate limiting before error handlers
   app.register(rateLimit, {
     max: 50,
     timeWindow: "1 minute",
@@ -87,7 +82,6 @@ export const buildServer = async () => {
     },
   });
 
-  // Set error handlers before registering metrics plugin
   app.setNotFoundHandler((request, reply) => {
     reply.notFound("The requested resource was not found.");
   });
@@ -138,14 +132,11 @@ export const buildServer = async () => {
   app.register(metricsPlugin);
   app.register(monitoringPlugin);
 
-  // Register all routes
+  // routes
   app.register(healthRoutes, { prefix: "/api/v2" });
   app.register(authRoutes, { prefix: "/api/v2/auth" });
   app.register(userRoutes, { prefix: "/api/v2/user" });
-  app.register(schoolRoutes, { prefix: "/api/v2/school" });
-  app.register(studentRoutes, { prefix: "/api/v2/students" }); 
   app.register(taskRoutes, { prefix: "/api/v2" });
-  app.register(teacherRoutes, { prefix: "/api/v2/teachers" });
   app.register(supportTicketRoutes, { prefix: "/api/v2/support" });
   app.register(cloudinaryRoutes, { prefix: "/api/v2/cloudinary" });
   app.get("/", async (request, reply) => {

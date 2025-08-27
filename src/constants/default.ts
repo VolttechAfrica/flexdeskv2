@@ -1,1 +1,1 @@
-export const DEFAULT_PASSWORD = "School123456";
+export const DEFAULT_PASSWORD = "";

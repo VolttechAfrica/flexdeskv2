@@ -2,6 +2,8 @@ import { FastifyInstance } from 'fastify';
 import AuthController from '../controllers/auth.controller.js';
 import authorize from '../hooks/auth.hook.js';
 import { RegisterRequest, StaffType } from '../types/user.js';
+import { FastifyRequest, FastifyReply } from 'fastify';
+import AuthorizationService from '../services/authorization.service.js';
 
 async function authRoutes(app: FastifyInstance){
     const authHandler = new AuthController(app);
@@ -33,17 +35,32 @@ async function authRoutes(app: FastifyInstance){
     app.route({
         method: "POST",
         url: "/token/refresh",
-        preHandler: [app.authenticate],
         schema: {
-            body: {
+            headers: {
                 type: 'object',
-                required: ['userId'],
+                required: ['x-refresh-token'],
                 properties: {
-                    userId: { type: 'string' }
+                    'x-refresh-token': { type: 'string' }
                 }
             }
         },
-        handler: authHandler.refreshToken.bind(authHandler)
+        handler: async (request: FastifyRequest<{ Headers: { 'x-refresh-token': string } }>, reply: FastifyReply) => {
+            const refreshToken = request.headers['x-refresh-token'];
+            if (!refreshToken) {
+                return reply.status(400).send({ error: 'Refresh token is required' });
+            }
+            
+            try {
+                const authorizationService = new AuthorizationService(app);
+                const newToken = await authorizationService.refreshToken(refreshToken);
+                return reply.status(200).send(newToken);
+            } catch (error: any) {
+                return reply.status(401).send({ 
+                    error: error.message || 'Failed to refresh token',
+                    forceLogout: error.message?.includes('logged out') || false
+                });
+            }
+        }
     })
 
     const registerAuthorization = await authorize("manage_staff");

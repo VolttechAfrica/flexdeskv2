@@ -107,7 +107,7 @@ class ParentRepository extends BaseRepository {
     );
   }
 
-  async updateStatus(parentId: string, status: string): Promise<boolean> {
+  async updateStatus(parentId: string, status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED' | 'PENDING'): Promise<boolean> {
     return this.executeQuery("updateParentStatus", "parent", async () => {
       try {
         const updated = await this.prisma.parent.update({
