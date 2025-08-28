@@ -248,7 +248,7 @@ export class SecurityManager {
         callData: callData
       });
 
-      this.app.log.warn(`Suspicious activity flagged: ${reason}`, { callId: callData.id, reason });
+      this.app.log.warn(`Suspicious activity flagged: ${reason}`, { callId: callData.id, reason } as any);
 
       return alert;
     } catch (error: any) {

@@ -94,7 +94,7 @@ export const buildServer = async () => {
       replySent: reply.sent,
       url: request.url,
       method: request.method
-    });
+    } as any);
     
     // Check if response has already been sent
     if (reply.sent) {
@@ -125,7 +125,7 @@ export const buildServer = async () => {
         message: 'An unexpected error occurred',
       });
     } catch (sendError) {
-      app.log.error('Error sending error response:', sendError);
+      app.log.error('Error sending error response:', sendError as any);
     }
   });
 

@@ -275,9 +275,9 @@ export class MCPIntegration {
         parameters,
         result: result?.success ? 'success' : 'failure',
         timestamp: new Date()
-      });
+      } as any);
     } catch (error: any) {
-      this.app.log.warn('Could not log tool execution:', error);
+      this.app.log.warn('Could not log tool execution:', error as any);
     }
   }
 
