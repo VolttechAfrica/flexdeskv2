@@ -10,77 +10,45 @@ export default class DatabaseMonitor {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-    this.setupMonitoring();
     this.initializeMonitoring();
   }
 
-  private setupMonitoring() {
-    // Monitor query execution time
-    this.prisma.$use(async (params, next) => {
-      const start = Date.now();
-      try {
-        const result = await next(params);
-        const duration = Date.now() - start;
-
-        // Record successful query metrics (fire and forget)
-        recordMetric(Metrics.DB_QUERY, 1, [
-          `model:${params.model}`,
-          `action:${params.action}`,
-          `success:true`,
-        ]).catch(() => {}); // Ignore errors
-
-        // Record query duration (fire and forget)
-        recordMetric('db.query.duration', duration, [
-          `model:${params.model}`,
-          `action:${params.action}`,
-        ]).catch(() => {}); // Ignore errors
-
-        return result;
-      } catch (error) {
-        // Record failed query metrics (fire and forget)
-        recordMetric(Metrics.DB_ERROR, 1, [
-          `model:${params.model}`,
-          `action:${params.action}`,
-          `error:${error instanceof Error ? error.name : 'unknown'}`,
-        ]).catch(() => {}); // Ignore errors
-
-        throw error instanceof Error ? error : new Error(String(error));
-      }
-    });
-  }
-
   private initializeMonitoring() {
-    // Monitor Prisma query events
-    (this.prisma as any).$on('query' as any, (e: Prisma.QueryEvent) => {
-      this.queryCount++;
-      this.totalQueryTime += e.duration;
-      
-      const span = tracer.startSpan('prisma.query', {
-        tags: {
-          'db.type': 'prisma',
-          'db.query': e.query,
-          'db.duration_ms': e.duration,
-          'db.params': JSON.stringify(e.params)
-        }
+    // Monitor Prisma query events using event listeners
+    try {
+      (this.prisma as any).$on('query' as any, (e: Prisma.QueryEvent) => {
+        this.queryCount++;
+        this.totalQueryTime += e.duration;
+        
+        const span = tracer.startSpan('prisma.query', {
+          tags: {
+            'db.type': 'prisma',
+            'db.query': e.query,
+            'db.duration_ms': e.duration,
+            'db.params': JSON.stringify(e.params)
+          }
+        });
+        
+        span.finish();
       });
-      
-      span.finish();
-    });
 
-    // Monitor Prisma errors
-    (this.prisma as any).$on('error' as any, (e: Error) => {
-      this.errorCount++;
-      
-      const span = tracer.startSpan('prisma.error', {
-        tags: {
-          'error.type': 'database_error',
-          'error.message': e.message,
-          'error.stack': e.stack
-        }
+      // Monitor Prisma errors
+      (this.prisma as any).$on('error' as any, (e: Error) => {
+        this.errorCount++;
+        
+        const span = tracer.startSpan('prisma.error', {
+          tags: {
+            'error.type': 'database_error',
+            'error.message': e.message,
+            'error.stack': e.stack
+          }
+        });
+        
+        span.finish();
       });
-      
-      span.finish();
-    });
+    } catch (error) {
+      console.warn('Prisma monitoring events not available:', error);
+    }
   }
 
   // Helper method to track connection pool metrics

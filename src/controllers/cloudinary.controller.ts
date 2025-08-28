@@ -32,7 +32,7 @@ class CloudinaryController {
                 data: result
             });
 
-        } catch (error) {
+        } catch (error: any) {
             this.app.log.error('Error generating signature:', error);
             throw new UserError(
                 HttpStatusCode.InternalServerError,

@@ -41,9 +41,9 @@ export class TwilioService {
 
       this.isInitialized = true;
       this.app.log.info('Twilio Service initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize Twilio Service:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -80,7 +80,7 @@ export class TwilioService {
       `);
 
       return { twiml, status: 200 };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling incoming call:', error);
       return this.generateErrorResponse('I apologize, but I\'m experiencing some technical difficulties right now. Please try calling back in a few minutes.');
     }
@@ -147,7 +147,7 @@ export class TwilioService {
       // Generate dynamic TwiML response based on agent response
       return this.generateDynamicAgentResponse(agentResponse, callData.CallSid);
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling gather input:', error);
       return this.generateErrorResponse('I encountered an error processing your request. Let me create a support ticket for you and our team will contact you shortly.');
     }
@@ -173,7 +173,7 @@ export class TwilioService {
         );
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling call status:', error);
     }
   }
@@ -191,7 +191,7 @@ export class TwilioService {
         await this.storeRecordingInfo(recordingData);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling recording status:', error);
     }
   }
@@ -211,7 +211,7 @@ export class TwilioService {
       } else {
         return 'general_inquiry';
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error analyzing speech intent:', error);
       return 'general_inquiry';
     }
@@ -222,7 +222,7 @@ export class TwilioService {
       // Use MCP to get dynamic greeting
       const greeting = await this.agentManager['agent']['llmService'].generateDynamicGreeting();
       return greeting;
-    } catch (error) {
+    } catch (error: any) {
       // Fallback greeting
       const greetings = [
         "Hello! Welcome to FlexDesk School Management System.",
@@ -261,7 +261,7 @@ export class TwilioService {
       `);
 
       return { twiml: response, status: 200 };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating agent response:', error);
       return this.generateErrorResponse('I encountered an error. Let me create a support ticket for you.');
     }
@@ -304,7 +304,7 @@ export class TwilioService {
       // Store recording information in database using the agent manager's database connection
       // This will be handled by the call handler when updating call status
       this.app.log.info(`Recording URL stored: ${recordingData.RecordingUrl}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error storing recording info:', error);
     }
   }
@@ -327,16 +327,16 @@ export class TwilioService {
 
       this.app.log.info(`Outgoing call initiated: ${call.sid} to ${to}`);
       return call;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error making outgoing call:', error);
-      throw error;
+      throw error as any;
     }
   }
 
   async cleanup(): Promise<void> {
     try {
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during Twilio service cleanup:', error);
     }
   }

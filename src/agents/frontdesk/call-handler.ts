@@ -29,9 +29,9 @@ export class CallHandler {
       await this.createCallTables();
       this.isInitialized = true;
       this.app.log.info('Call Handler initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize Call Handler:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -75,7 +75,7 @@ export class CallHandler {
         CREATE INDEX IF NOT EXISTS idx_call_logs_timestamp ON call_logs(timestamp);
       `;
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not create call tables:', error);
     }
   }
@@ -113,9 +113,9 @@ export class CallHandler {
 
       this.app.log.info(`Incoming call handled: ${callId}`);
       return fullCallData;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling incoming call:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -149,9 +149,9 @@ export class CallHandler {
 
       this.app.log.info(`Outgoing call initiated: ${callId}`);
       return fullCallData;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error making outgoing call:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -194,9 +194,9 @@ export class CallHandler {
           await this.conversationManager.endConversation(callId);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating call status:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -215,7 +215,7 @@ export class CallHandler {
       }
 
       return call;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting call:', error);
       return null;
     }
@@ -252,7 +252,7 @@ export class CallHandler {
         recordingUrl: call.recording_url,
         metadata: call.metadata
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting call history:', error);
       return [];
     }
@@ -300,9 +300,9 @@ export class CallHandler {
 
       this.app.log.info(`Callback scheduled: ${callId} for ${callbackData.phoneNumber}`);
       return callId;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error scheduling callback:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -332,11 +332,11 @@ export class CallHandler {
           });
 
           this.app.log.info(`Scheduled callback executed: ${callback.id}`);
-        } catch (error) {
+        } catch (error: any) {
           this.app.log.error(`Error executing scheduled callback ${callback.id}:`, error);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error processing scheduled callbacks:', error);
     }
   }
@@ -359,9 +359,9 @@ export class CallHandler {
           ${callData.timestamp}
         );
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error logging call to database:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -392,9 +392,9 @@ export class CallHandler {
           WHERE call_id = ${callId}
         `;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating call in database:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -410,7 +410,7 @@ export class CallHandler {
           ${JSON.stringify({ timestamp: new Date() })}
         );
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error logging call action:', error);
     }
   }
@@ -436,7 +436,7 @@ export class CallHandler {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error loading call from database:', error);
       return null;
     }
@@ -447,7 +447,7 @@ export class CallHandler {
       await this.prisma.$disconnect();
       this.activeCalls.clear();
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during call handler cleanup:', error);
     }
   }

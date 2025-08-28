@@ -22,9 +22,9 @@ export class SecurityManager {
       await this.createSecurityTables();
       this.isInitialized = true;
       this.app.log.info('Security Manager initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize Security Manager:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -128,7 +128,7 @@ export class SecurityManager {
         CREATE INDEX IF NOT EXISTS idx_fraud_logs_risk_score ON fraud_detection_logs(risk_score);
       `;
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not create security tables:', error);
     }
   }
@@ -198,7 +198,7 @@ export class SecurityManager {
       }
 
       return { isValid: true };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error validating call:', error);
       // Default to allowing the call if security check fails
       return { isValid: true, reason: 'Security check failed, allowing call' };
@@ -229,7 +229,7 @@ export class SecurityManager {
       }
 
       return { isValid: true };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error validating outgoing call:', error);
       return { isValid: false, reason: 'Validation failed' };
     }
@@ -248,12 +248,12 @@ export class SecurityManager {
         callData: callData
       });
 
-      this.app.log.warn(`Suspicious activity flagged: ${reason}`, { callId: callData.id, reason });
+      this.app.log.warn(`Suspicious activity flagged: ${reason}`, { callId: callData.id, reason } as any);
 
       return alert;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error flagging suspicious activity:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -319,9 +319,9 @@ export class SecurityManager {
         timestamp: new Date(),
         status: 'OPEN'
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error creating security alert:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -331,7 +331,7 @@ export class SecurityManager {
         INSERT INTO fraud_detection_logs (call_id, caller_phone, risk_score, detected_patterns, action_taken, metadata)
         VALUES (${callData.id}, ${callData.callerInfo.phoneNumber}, ${riskScore}, ${patterns}, ${action}, ${JSON.stringify(callData.metadata)});
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error logging fraud detection:', error);
     }
   }
@@ -347,7 +347,7 @@ export class SecurityManager {
       `;
 
       return { suspiciousActivity: parseInt((result as any[])[0]?.suspicious_activity || '0') };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting caller history:', error);
       return { suspiciousActivity: 0 };
     }
@@ -364,7 +364,7 @@ export class SecurityManager {
       `;
 
       return parseInt((result as any[])[0]?.blocked_count || '0') > 0;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error checking if number is blocked:', error);
       return false;
     }
@@ -379,7 +379,7 @@ export class SecurityManager {
       `;
 
       return parseInt((result as any[])[0]?.alert_count || '0');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting security alerts count:', error);
       return 0;
     }
@@ -395,7 +395,7 @@ export class SecurityManager {
       `;
 
       return result as SecurityAlert[];
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting security alerts:', error);
       return [];
     }
@@ -408,9 +408,9 @@ export class SecurityManager {
         SET status = ${status}, notes = ${notes || null}, updated_at = NOW()
         WHERE id = ${alertId};
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating alert status:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -418,7 +418,7 @@ export class SecurityManager {
     try {
       await this.prisma.$disconnect();
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during security manager cleanup:', error);
     }
   }

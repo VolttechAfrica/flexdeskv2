@@ -112,7 +112,7 @@ export default fp(async (fastify) => {
             );
           }
         }
-        throw error;
+        throw error as any;
       }
 
       throw new TokenExpiredError(
@@ -120,9 +120,9 @@ export default fp(async (fastify) => {
         'Token expired or invalid, please login again'
       );
 
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('Authentication failed:', error);
-      throw error;
+      throw error as any;
     }
   });
 

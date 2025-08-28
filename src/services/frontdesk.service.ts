@@ -64,9 +64,9 @@ export class FrontDeskService {
         status: school.status,
         website: undefined // Add if needed
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error searching for school:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -120,9 +120,9 @@ export class FrontDeskService {
         parentEmail,
         status: student.status
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting student info:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -141,9 +141,9 @@ export class FrontDeskService {
       });
 
       return parent;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting parent info:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -175,9 +175,9 @@ export class FrontDeskService {
 
       this.app.log.info(`Payment link generated: ${paymentId} for student ${paymentData.studentId}`);
       return paymentLink;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating payment link:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -213,9 +213,9 @@ export class FrontDeskService {
       
       this.app.log.info(`Payment email sent to ${parentEmail}`);
       
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error sending payment email:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -239,9 +239,9 @@ export class FrontDeskService {
 
       this.app.log.info(`Support ticket created: ${ticketId}`);
       return { id: ticketId, status: 'PENDING' };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error creating support ticket:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -265,9 +265,9 @@ export class FrontDeskService {
       `;
 
       this.app.log.info(`Callback scheduled for ticket: ${callbackData.ticketId}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error scheduling callback:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -290,7 +290,7 @@ export class FrontDeskService {
       `;
 
       this.app.log.info(`Outgoing call logged: ${callData.id}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error logging outgoing call:', error);
     }
   }
@@ -317,9 +317,9 @@ export class FrontDeskService {
       });
 
       return school;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting school details:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -332,7 +332,7 @@ export class FrontDeskService {
       `;
 
       return payments as any[];
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting student payment history:', error);
       return [];
     }
@@ -346,9 +346,9 @@ export class FrontDeskService {
       });
 
       this.app.log.info(`Parent email updated: ${parentId} -> ${newEmail}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating parent email:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -363,7 +363,7 @@ export class FrontDeskService {
       });
 
       return tickets;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting active support tickets:', error);
       return [];
     }
@@ -443,16 +443,16 @@ export class FrontDeskService {
       `;
 
       this.app.log.info('Payment and support tables created successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error creating payment tables:', error);
-      throw error;
+      throw error as any;
     }
   }
 
   async cleanup(): Promise<void> {
     try {
       await this.prisma.$disconnect();
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during front desk service cleanup:', error);
     }
   }

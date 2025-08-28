@@ -39,7 +39,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
       await twilioService.initialize();
       
       fastify.log.info('Twilio routes initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('Failed to initialize Twilio routes:', error);
     }
   });
@@ -81,7 +81,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         // Set proper headers for Twilio
         reply.header('Content-Type', 'text/xml');
         return reply.status(response.status).send(response.twiml);
-      } catch (error) {
+      } catch (error: any) {
         fastify.log.error('Error handling incoming call:', error);
         
         // Return error TwiML
@@ -133,7 +133,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         // Set proper headers for Twilio
         reply.header('Content-Type', 'text/xml');
         return reply.status(response.status).send(response.twiml);
-      } catch (error) {
+      } catch (error: any) {
         fastify.log.error('Error handling gather input:', error);
         
         // Return error TwiML
@@ -182,7 +182,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         await twilioService.handleCallStatus(callData);
 
         return reply.status(200).send({ success: true });
-      } catch (error) {
+      } catch (error: any) {
         fastify.log.error('Error handling call status:', error);
         return reply.status(500).send({
           error: 'Failed to process call status',
@@ -223,7 +223,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         await twilioService.handleRecordingStatus(recordingData);
 
         return reply.status(200).send({ success: true });
-      } catch (error) {
+      } catch (error: any) {
         fastify.log.error('Error handling recording status:', error);
         return reply.status(500).send({
           error: 'Failed to process recording status',
@@ -267,7 +267,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
           status: call.status,
           timestamp: new Date()
         });
-      } catch (error) {
+      } catch (error: any) {
         fastify.log.error('Error making outgoing call:', error);
         return reply.status(500).send({
           error: 'Failed to make outgoing call',
@@ -293,7 +293,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
 
       reply.header('Content-Type', 'text/xml');
       return reply.status(200).send(twiml);
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('Error generating outgoing TwiML:', error);
       
       const errorTwiML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -324,7 +324,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         message: 'Twilio service is running',
         timestamp: new Date()
       });
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('Error checking Twilio health:', error);
       return reply.status(500).send({
         status: 'unhealthy',
@@ -344,7 +344,7 @@ export default async function twilioRoutes(fastify: FastifyInstance) {
         await agentManager['agent'].cleanup();
       }
       fastify.log.info('Twilio routes cleaned up');
-    } catch (error) {
+    } catch (error: any) {
       fastify.log.error('Error during cleanup:', error);
     }
   });

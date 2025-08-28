@@ -17,7 +17,7 @@ const redisClient = new Redis({
 const redisPlugin: FastifyPluginAsync = fp(async (fastify) => {
  
   redisClient.on("error", (err) => {
-    fastify.log.error("❌ Redis connection error:", err);
+    fastify.log.error("❌ Redis connection error:", err as any);
   });
     redisClient.on("connect", () => {
         fastify.log.info("🔌 Redis connected");
