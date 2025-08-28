@@ -106,6 +106,7 @@ class AuthorizationService {
             await this.dbMonitor.trackQuery('verifyToken', Date.now() - startTime);
             return decoded;
         } catch (error: any) {
+            console.log(error);
             await this.dbMonitor.trackError(error);
             if (error?.name === 'TokenExpiredError') {
                 throw new TokenExpiredError(HttpStatusCode.Unauthorized, 'Token has expired');
@@ -231,7 +232,7 @@ class AuthorizationService {
 
         return {
             accessToken: `Bearer ${accessToken}`,
-            refreshToken: refreshToken
+            refreshToken: `Bearer ${refreshToken}`
         };
     }
 
