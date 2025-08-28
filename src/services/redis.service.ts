@@ -31,14 +31,14 @@ class RedisService {
     throw new UserError(
       HttpStatusCode.InternalServerError,
       `Redis operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    ) as any;
   }
 
   async set({ key, value, ttl = this.DEFAULT_TTL }: RedisSetOptions): Promise<void> {
     try {
       const storeValue = this.serializeValue(value);
       await this.redis.set(key, storeValue, 'EX', Number(ttl));
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('SET', key, error);
     }
   }
@@ -47,7 +47,7 @@ class RedisService {
     try {
       const data = await this.redis.get(key);
       return data ? this.deserializeValue<T>(data) : null;
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('GET', key, error);
     }
   }
@@ -55,7 +55,7 @@ class RedisService {
   async delete(key: string): Promise<void> {
     try {
       await this.redis.del(key);
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('DEL', key, error);
     }
   }
@@ -63,7 +63,7 @@ class RedisService {
   async exists(key: string): Promise<boolean> {
     try {
       return (await this.redis.exists(key)) === 1;
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('EXISTS', key, error);
     }
   }
@@ -71,7 +71,7 @@ class RedisService {
   async setInstance({ key, value, ttl = this.DEFAULT_TTL }: RedisInstanceOptions): Promise<void> {
     try {
       await this.set({ key, value: JSON.stringify(value), ttl });
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('SET_INSTANCE', key, error);
     }
   }
@@ -80,7 +80,7 @@ class RedisService {
     try {
       const data = await this.get<string>(key);
       return data ? JSON.parse(data) as T : null;
-    } catch (error) {
+    } catch (error: any) {
       this.handleError('GET_INSTANCE', key, error);
     }
   }

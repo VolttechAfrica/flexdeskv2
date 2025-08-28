@@ -31,9 +31,9 @@ export class LLMService {
 
       this.isInitialized = true;
       this.app.log.info(`LLM Service initialized with provider: ${this.modelProvider}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize LLM Service:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -50,9 +50,9 @@ export class LLMService {
       } else {
         this.app.log.warn(`LLM provider ${this.modelProvider} not fully supported yet. Using fallback responses.`);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error(`Failed to initialize LangChain ${this.modelProvider} model:`, error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -89,7 +89,7 @@ export class LLMService {
 
       const response = await chain.invoke({});
       return response.trim();
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating dynamic greeting:', error);
       return this.getRandomFallbackGreeting();
     }
@@ -143,7 +143,7 @@ export class LLMService {
       // Parse the response to extract purpose and entities
       const analysis = this.parseCallPurposeResponse(response);
       return analysis;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error analyzing call purpose:', error);
       // Fallback to keyword-based analysis
       return this.fallbackCallPurposeAnalysis(userQuery);
@@ -200,7 +200,7 @@ export class LLMService {
         followUpQuestions: ['Do you need more specific information?', 'Would you like to speak with someone?'],
         metadata: { schoolId: schoolInfo.id, queryType: 'school_inquiry' }
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating school inquiry response:', error);
       return this.generateFallbackResponse(userQuery, 'school_inquiry');
     }
@@ -253,7 +253,7 @@ export class LLMService {
         followUpQuestions: ['Is there anything else I can help you with?', 'Do you need more details?'],
         metadata: { queryType: 'general_inquiry', relevantSources: relevantInfo.length }
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating general response:', error);
       return this.generateFallbackResponse(userQuery, 'general_inquiry');
     }
@@ -304,7 +304,7 @@ export class LLMService {
         followUpQuestions: ['Do you need a receipt?', 'When would you like to make the payment?'],
         metadata: { studentId: studentInfo.id, paymentType: 'school_fees' }
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating payment response:', error);
       return this.generateFallbackResponse('payment inquiry', 'payment');
     }
@@ -351,7 +351,7 @@ export class LLMService {
         followUpQuestions: [],
         metadata: { alertType: 'fraud', severity: 'high' }
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error generating fraud alert response:', error);
       return this.generateFallbackResponse('fraud alert', 'security');
     }
@@ -373,7 +373,7 @@ export class LLMService {
         classArm: parsed.classArm,
         amount: parsed.amount
       };
-    } catch (error) {
+    } catch (error: any) {
       // Fallback parsing
       return this.fallbackCallPurposeAnalysis(response);
     }
@@ -466,7 +466,7 @@ export class LLMService {
     try {
       this.llm = null;
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during LLM service cleanup:', error);
     }
   }

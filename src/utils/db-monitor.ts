@@ -15,8 +15,8 @@ export default class DatabaseMonitor {
   }
 
   private setupMonitoring() {
-    // Monitor query execution time
-    this.prisma.$use(async (params, next) => {
+    // Monitor query execution time using Prisma middleware
+    this.prisma.$use(async (params: any, next: any) => {
       const start = Date.now();
       try {
         const result = await next(params);
@@ -24,23 +24,23 @@ export default class DatabaseMonitor {
 
         // Record successful query metrics (fire and forget)
         recordMetric(Metrics.DB_QUERY, 1, [
-          `model:${params.model}`,
-          `action:${params.action}`,
+          `model:${params.model || 'unknown'}`,
+          `action:${params.action || 'unknown'}`,
           `success:true`,
         ]).catch(() => {}); // Ignore errors
 
         // Record query duration (fire and forget)
         recordMetric('db.query.duration', duration, [
-          `model:${params.model}`,
-          `action:${params.action}`,
+          `model:${params.model || 'unknown'}`,
+          `action:${params.action || 'unknown'}`,
         ]).catch(() => {}); // Ignore errors
 
         return result;
-      } catch (error) {
+      } catch (error: any) {
         // Record failed query metrics (fire and forget)
         recordMetric(Metrics.DB_ERROR, 1, [
-          `model:${params.model}`,
-          `action:${params.action}`,
+          `model:${params.model || 'unknown'}`,
+          `action:${params.action || 'unknown'}`,
           `error:${error instanceof Error ? error.name : 'unknown'}`,
         ]).catch(() => {}); // Ignore errors
 

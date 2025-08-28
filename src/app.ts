@@ -86,11 +86,11 @@ export const buildServer = async () => {
     reply.notFound("The requested resource was not found.");
   });
 
-  app.setErrorHandler((error, request, reply) => {
+  app.setErrorHandler((error: any, request, reply) => {
     app.log.error('Error handler called:', {
-      error: error.message,
-      code: error.code,
-      statusCode: error.statusCode,
+      error: error?.message || 'Unknown error',
+      code: error?.code || 'UNKNOWN',
+      statusCode: error?.statusCode || 500,
       replySent: reply.sent,
       url: request.url,
       method: request.method
@@ -103,14 +103,14 @@ export const buildServer = async () => {
     }
     
     // Check if this is a Fastify internal error that we shouldn't handle
-    if (error.code === 'FST_ERR_SEND_INSIDE_ONERR') {
+    if (error?.code === 'FST_ERR_SEND_INSIDE_ONERR') {
       app.log.error('Fastify internal error detected, not sending response');
       return;
     }
     
     try {
       // Handle different types of errors
-      if (error.statusCode) {
+      if (error?.statusCode) {
         return reply.status(error.statusCode).send({
           status: false,
           error: error.name || 'Error',

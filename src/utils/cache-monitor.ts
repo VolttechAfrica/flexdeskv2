@@ -52,12 +52,12 @@ export class CacheMonitor {
         ]).catch(() => {}); // Ignore errors
 
         return result;
-      } catch (error) {
+      } catch (error: any) {
         recordMetric('cache.error', 1, [
           `operation:get`,
           `error:${error instanceof Error ? error.name : 'unknown'}`,
         ]).catch(() => {}); // Ignore errors
-        throw error instanceof Error ? error : new Error(String(error));
+        throw error instanceof Error ? error : new Error(String(error)) as any;
       }
     };
 
@@ -68,7 +68,7 @@ export class CacheMonitor {
         const usedMemory = parseInt(info.match(/used_memory:(\d+)/)?.[1] || '0');
         
         recordMetric('cache.memory.used', usedMemory, []).catch(() => {}); // Ignore errors
-      } catch (error) {
+      } catch (error: any) {
         this.fastify.log.error('Failed to monitor Redis memory:', error);
       }
     }, 60000); // Every minute
@@ -109,7 +109,7 @@ export class CacheMonitor {
           ? this.hitCount / (this.hitCount + this.missCount) 
           : 0
       };
-    } catch (error) {
+    } catch (error: any) {
       this.fastify.log.error('Failed to get Redis stats:', error);
       return null;
     }

@@ -54,7 +54,7 @@ class UserService {
             const userResponse = await UserResponse(user);
             return userResponse;
 
-        } catch (error) {
+        } catch (error: any) {
             this.app.log.error('Error getting user info:', error);
             throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
         }
@@ -75,7 +75,7 @@ class UserService {
                     ...data.profile,
                     staffId,
                     email
-                };
+                } as any;
                 await this.userRepositories.updateProfile(profileData);
             }
 
@@ -113,7 +113,7 @@ class UserService {
                 message: "Onboarding completed successfully"
             };
 
-        } catch (error) {
+        } catch (error: any) {
             this.app.log.error('Error completing onboarding:', error);
             throw new UserError(HttpStatusCode.InternalServerError, "Failed to complete onboarding");
         }
@@ -135,7 +135,7 @@ class UserService {
                 message: "Profile picture updated successfully"
             };
 
-        } catch (error) {
+        } catch (error: any) {
             this.app.log.error('Error updating profile picture:', error);
             throw new UserError(HttpStatusCode.InternalServerError, "Failed to update profile picture");
         }
@@ -154,7 +154,7 @@ class UserService {
                 message: "First time login deleted successfully"
             };
 
-        } catch (error) {
+        } catch (error: any) {
             this.app.log.error('Error deleting first time login:', error);
             throw new UserError(HttpStatusCode.InternalServerError, "Failed to delete first time login");
         }

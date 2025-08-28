@@ -22,9 +22,9 @@ export class RAGService {
       
       this.isInitialized = true;
       this.app.log.info('RAG Service initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize RAG Service:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -37,7 +37,7 @@ export class RAGService {
       if (!result || (Array.isArray(result) && result.length === 0)) {
         this.app.log.warn('pgvector extension not found. Some RAG features may not work.');
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not check pgvector extension:', error);
     }
   }
@@ -93,7 +93,7 @@ export class RAGService {
         CREATE INDEX IF NOT EXISTS idx_knowledge_vectors_category ON knowledge_vectors(category);
       `;
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not create vector tables:', error);
     }
   }
@@ -143,9 +143,9 @@ export class RAGService {
         enhancedInfo: schoolVectors,
         lastUpdated: new Date()
       };
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting school information:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -177,7 +177,7 @@ export class RAGService {
         relevance: this.calculateRelevance(query, result.content),
         metadata: result.metadata || {}
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error searching general information:', error);
       return [];
     }
@@ -220,7 +220,7 @@ export class RAGService {
         relevance: this.calculateRelevance(query, result.content),
         metadata: result.metadata || {}
       }));
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error searching student information:', error);
       return [];
     }
@@ -242,9 +242,9 @@ export class RAGService {
           VALUES (${schoolId}, ${chunk}, ${contentType}, ${JSON.stringify(metadata)});
         `;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error adding school vector:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -264,9 +264,9 @@ export class RAGService {
           VALUES (${studentId}, ${chunk}, ${contentType}, ${JSON.stringify(metadata)});
         `;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error adding student vector:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -286,9 +286,9 @@ export class RAGService {
           VALUES (${chunk}, ${contentType}, ${category || null}, ${JSON.stringify(metadata)});
         `;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error adding knowledge vector:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -339,9 +339,9 @@ export class RAGService {
   async updateVectorEmbeddings(): Promise<void> {
     try {
       this.app.log.info('Vector embeddings update not implemented yet - using text-based search');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating vector embeddings:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -349,7 +349,7 @@ export class RAGService {
     try {
       await this.prisma.$disconnect();
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during RAG service cleanup:', error);
     }
   }

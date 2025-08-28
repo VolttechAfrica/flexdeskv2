@@ -18,9 +18,9 @@ export async function registerTwilioRoutes(app: FastifyInstance): Promise<void> 
     app.log.info('  GET  /api/v1/twilio/outgoing-twiml - Generate outgoing call TwiML');
     app.log.info('  GET  /api/v1/twilio/health - Health check');
     
-  } catch (error) {
+  } catch (error: any) {
     app.log.error('Failed to register Twilio routes:', error);
-    throw error;
+    throw error as any;
   }
 }
 

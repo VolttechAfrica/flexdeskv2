@@ -37,9 +37,9 @@ export class MCPIntegration {
       await this.loadCustomCapabilities();
       
       this.app.log.info('MCP Integration initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize MCP Integration:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -203,7 +203,7 @@ export class MCPIntegration {
           await this.registerCustomCapability(name, config as any);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not load custom capabilities:', error);
     }
   }
@@ -221,7 +221,7 @@ export class MCPIntegration {
       this.registerTools(capability.tools);
       
       this.app.log.info(`Custom capability registered: ${name}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error(`Error registering custom capability ${name}:`, error);
     }
   }
@@ -250,9 +250,9 @@ export class MCPIntegration {
       await this.logToolExecution(toolName, parameters, result);
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error(`Error executing tool ${toolName}:`, error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -276,7 +276,7 @@ export class MCPIntegration {
         result: result?.success ? 'success' : 'failure',
         timestamp: new Date()
       });
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not log tool execution:', error);
     }
   }
@@ -316,9 +316,9 @@ export class MCPIntegration {
       this.tools.set(tool.name, tool);
       
       this.app.log.info(`Custom tool added: ${tool.name} to capability ${capabilityName}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error(`Error adding custom tool:`, error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -332,9 +332,9 @@ export class MCPIntegration {
       }
       
       this.app.log.info(`Tool removed: ${toolName}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error(`Error removing tool:`, error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -373,7 +373,7 @@ export class MCPIntegration {
     try {
       this.capabilities.clear();
       this.tools.clear();
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during MCP integration cleanup:', error);
     }
   }

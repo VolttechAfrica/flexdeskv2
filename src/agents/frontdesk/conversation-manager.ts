@@ -19,9 +19,9 @@ export class ConversationManager {
       await this.createConversationTables();
       this.isInitialized = true;
       this.app.log.info('Conversation Manager initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize Conversation Manager:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -64,7 +64,7 @@ export class ConversationManager {
         CREATE INDEX IF NOT EXISTS idx_conversation_turns_timestamp ON conversation_turns(timestamp);
       `;
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.warn('Could not create conversation tables:', error);
     }
   }
@@ -103,9 +103,9 @@ export class ConversationManager {
 
       this.app.log.info(`Conversation started for call: ${callId}`);
       return conversation;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error starting conversation:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -137,9 +137,9 @@ export class ConversationManager {
       await this.updateConversationInDatabase(conversation);
 
       return newTurn;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error adding turn to conversation:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -161,7 +161,7 @@ export class ConversationManager {
       }
 
       return conversation;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error getting conversation:', error);
       return null;
     }
@@ -178,7 +178,7 @@ export class ConversationManager {
         conversation.currentState = nextState;
         conversation.updatedAt = new Date();
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating conversation state:', error);
     }
   }
@@ -255,7 +255,7 @@ export class ConversationManager {
       }
 
       return hasChanges ? newState : null;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error analyzing turn for state change:', error);
       return null;
     }
@@ -281,7 +281,7 @@ export class ConversationManager {
         
         this.app.log.info(`Conversation ended for call: ${callId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error ending conversation:', error);
     }
   }
@@ -309,9 +309,9 @@ export class ConversationManager {
           ${conversation.updatedAt}
         );
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error saving conversation to database:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -331,9 +331,9 @@ export class ConversationManager {
           ${JSON.stringify({})}
         );
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error saving turn to database:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -347,9 +347,9 @@ export class ConversationManager {
             updated_at = ${conversation.updatedAt}
         WHERE id = ${conversation.id};
       `;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error updating conversation in database:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -390,7 +390,7 @@ export class ConversationManager {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error loading conversation from database:', error);
       return null;
     }
@@ -401,7 +401,7 @@ export class ConversationManager {
       await this.prisma.$disconnect();
       this.activeConversations.clear();
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during conversation manager cleanup:', error);
     }
   }

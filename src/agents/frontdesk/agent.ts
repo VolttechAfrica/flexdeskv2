@@ -59,9 +59,9 @@ export class FrontDeskAgent {
       this.status = AgentStatus.ONLINE;
       this.isInitialized = true;
       this.app.log.info('Front Desk AI Agent initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to initialize Front Desk AI Agent:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -122,7 +122,7 @@ export class FrontDeskAgent {
       });
 
       this.app.log.info('MCP capabilities registered successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Failed to register MCP capabilities:', error);
     }
   }
@@ -184,7 +184,7 @@ export class FrontDeskAgent {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling incoming call:', error);
       
       // Create support ticket for failed calls
@@ -224,7 +224,7 @@ export class FrontDeskAgent {
       // Generate response using LLM with RAG context
       return await this.llmService.generateSchoolInquiryResponse(schoolInfo, callData.userQuery);
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling school inquiry:', error);
       return await this.llmService.generateGeneralResponse([], 
         "I encountered an issue while searching for school information. Let me create a support ticket for you.");
@@ -278,7 +278,7 @@ export class FrontDeskAgent {
       // Generate response using LLM
       return await this.llmService.generatePaymentResponse(studentInfo, { paymentLink });
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling fee payment:', error);
       return await this.llmService.generateGeneralResponse([], 
         "I encountered an issue while processing your payment request. Let me create a support ticket for you.");
@@ -298,7 +298,7 @@ export class FrontDeskAgent {
       return await this.llmService.generateGeneralResponse([], 
         `I understand you need support. I've created a support ticket (${ticketId}) for you. Our team will review your request and contact you within 24 hours. Is there anything else I can help you with?`);
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling support request:', error);
       return await this.llmService.generateGeneralResponse([], 
         "I encountered an issue while creating your support ticket. Our team will contact you shortly.");
@@ -313,7 +313,7 @@ export class FrontDeskAgent {
       // Generate response using LLM with RAG context
       return await this.llmService.generateGeneralResponse(relevantInfo, callData.userQuery);
 
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling general inquiry:', error);
       return await this.llmService.generateGeneralResponse([], 
         "I encountered an issue while processing your inquiry. Let me create a support ticket for you.");
@@ -334,7 +334,7 @@ export class FrontDeskAgent {
       });
 
       this.app.log.warn(`Security violation handled for call ${callData.id}`);
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error handling security violation:', error);
     }
   }
@@ -421,9 +421,9 @@ export class FrontDeskAgent {
       this.status = AgentStatus.BUSY;
       
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error making outgoing call:', error);
-      throw error;
+      throw error as any;
     }
   }
 
@@ -444,7 +444,7 @@ export class FrontDeskAgent {
       
       this.status = AgentStatus.OFFLINE;
       this.isInitialized = false;
-    } catch (error) {
+    } catch (error: any) {
       this.app.log.error('Error during agent cleanup:', error);
     }
   }
