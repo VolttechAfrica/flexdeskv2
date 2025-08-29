@@ -93,19 +93,57 @@ jobs:
             --query "Command.CommandId" \
             --output text)
 
-          # Wait and check the command result
-          sleep 100  # wait a few seconds before fetching status
-
-          status=$(aws ssm list-command-invocations \
-            --command-id "$command_id" \
-            --details \
-            --region af-south-1 \
-            --query "CommandInvocations[0].Status" \
-            --output text)
-
-          echo "SSM Command Status: $status"
-
-          if [ "$status" != "Success" ]; then
-            echo "❌ Deployment failed or container not running"
+          # Wait and check the command result with proper status polling
+          echo "🔄 Waiting for SSM command to complete..."
+          
+          # Initialize variables for the polling loop
+          max_attempts=60  # Maximum 10 minutes (60 * 10 seconds)
+          attempt=0
+          status=""
+          
+          while [ $attempt -lt $max_attempts ]; do
+            attempt=$((attempt + 1))
+            
+            # Wait 10 seconds before checking status
+            sleep 10
+            
+            # Get the current status
+            status=$(aws ssm list-command-invocations \
+              --command-id "$command_id" \
+              --details \
+              --region af-south-1 \
+              --query "CommandInvocations[0].Status" \
+              --output text)
+            
+            echo "📊 Attempt $attempt/$max_attempts - SSM Command Status: $status"
+            
+            # Check if command has completed (either Success or Failed)
+            if [ "$status" = "Success" ]; then
+              echo "✅ SSM Command completed successfully!"
+              break
+            elif [ "$status" = "Failed" ] || [ "$status" = "Cancelled" ] || [ "$status" = "TimedOut" ]; then
+              echo "❌ SSM Command failed with status: $status"
+              exit 1
+            elif [ "$status" = "InProgress" ] || [ "$status" = "Pending" ]; then
+              echo "⏳ Command still in progress, waiting..."
+              continue
+            else
+              echo "⚠️  Unknown status: $status, continuing to wait..."
+              continue
+            fi
+          done
+          
+          # Check if we exceeded max attempts
+          if [ $attempt -ge $max_attempts ]; then
+            echo "⏰ Timeout: SSM command did not complete within the expected time"
+            echo "📋 Final status: $status"
             exit 1
           fi
+          
+          # Final verification that deployment was successful
+          if [ "$status" != "Success" ]; then
+            echo "❌ Deployment failed with final status: $status"
+            exit 1
+          fi
+          
+          echo "🎉 Deployment completed successfully!"
