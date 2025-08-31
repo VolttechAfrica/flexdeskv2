@@ -1,4 +1,4 @@
-# 🎓 FlexDesk AI Front Desk Agent
+# 🎓 FlexDesk
 
 An AI-powered web application for school administration and learning management, featuring role-based dashboards for administrators, bursars, teachers, parents, and students. The app includes authentication, protected routes, onboarding, and a marketing website.
 
