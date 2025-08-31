@@ -49,12 +49,15 @@ async function authRoutes(app: FastifyInstance){
             if (!refreshToken) {
                 return reply.status(400).send({ error: 'Refresh token is required' });
             }
-            
             try {
                 const authorizationService = new AuthorizationService(app);
                 const newToken = await authorizationService.refreshToken(refreshToken);
-                return reply.status(200).send(newToken);
+                return reply.status(200).send({
+                    token: newToken.accessToken,
+                    status: true,
+                });
             } catch (error: any) {
+        
                 return reply.status(401).send({ 
                     error: error.message || 'Failed to refresh token',
                     forceLogout: error.message?.includes('logged out') || false
