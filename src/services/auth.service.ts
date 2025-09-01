@@ -4,12 +4,11 @@ import { AuthError } from '../utils/errorhandler.js';
 import { HttpStatusCode } from "axios";
 import { responseMessage } from "../utils/responseMessage.js";
 import AuthorizationService from "./authorization.service.js";
-import { RegisterRequest, RegisterResponse, RegisterUser, StaffType } from "../types/user.js";
+import { RegisterRequest, RegisterResponse, StaffType } from "../types/user.js";
 import { DEFAULT_PASSWORD } from "../constants/default.js";
 import { validateEmail } from "../utils/validator.js";
 import { generateRegistrationNumber } from "../utils/registrationNumber.js";
 import EmailService from "./email.service.js";
-import RedisService from "./redis.service.js";
 
 
 
@@ -18,14 +17,13 @@ class AuthService {
     private authRepositories: any;
     private authHelper: AuthorizationService;
     private emailService: EmailService;
-    private redis: RedisService;
+
     
     constructor(app: FastifyInstance, authRepositories: any) {
         this.app = app;
         this.authRepositories = authRepositories;
         this.authHelper = new AuthorizationService(app);
         this.emailService = new EmailService(app);
-        this.redis = new RedisService(app);
     }
 
     private async hashPassword(password: string): Promise<string> {
@@ -35,19 +33,7 @@ class AuthService {
     private async comparePassword(password: string, hash: string): Promise<boolean> {
         return await this.app.bcrypt.compare(password, hash);
     }
-    private async storeUserInRedis(userId: string): Promise<any> {
-        const key = `user:${userId}`;
-        const ttl = 7 * 24 * 60 * 60;
-        await this.redis.set({key, value: userId, ttl});
-        return true;
-    }
 
-    async getUserFromRedis(userId: string): Promise<any> {
-        const key = `user:${userId}`;
-        const user = await this.redis.get(key);
-        if(!user) return null;
-        return user;
-    }
 
     async login({ email, password }: Login): Promise<any> {
         let user: any;
@@ -56,7 +42,7 @@ class AuthService {
 
         user = await this.findUserByEmail(email);
         if (!user) {
-            throw new AuthError(HttpStatusCode.NotFound, responseMessage.InvalidEmailOrPassword.message);
+            throw new AuthError(responseMessage.InvalidEmailOrPassword.message, HttpStatusCode.NotFound);
         }
 
         userTypeDetected = this.detectUserType(user);
@@ -73,16 +59,16 @@ class AuthService {
                 loginData = user?.parentLogin;
                 break;
             default:
-                throw new AuthError(HttpStatusCode.Unauthorized, "Unsupported user type");
+                throw new AuthError("Unsupported user type", HttpStatusCode.Unauthorized);
         }
 
         if (!loginData) {
-            throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            throw new AuthError(responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
         }
 
         const isPasswordValid = await this.comparePassword(password, loginData.password);
         if (!isPasswordValid) {
-            throw new AuthError(HttpStatusCode.Unauthorized, responseMessage.InvalidEmailOrPassword.message);
+            throw new AuthError(responseMessage.InvalidEmailOrPassword.message, HttpStatusCode.Unauthorized);
         }
 
         const payload = {
@@ -99,8 +85,6 @@ class AuthService {
         if (user.role?.RolePermission) {
             permissions = user.role.RolePermission.map((rp: { permission: { action: string } }) => rp.permission.action);
         }
-
-        await this.storeUserInRedis(user.id);
 
         const userResponse = await this.formatUserResponse(user, tokens, userTypeDetected, permissions);
         return userResponse;
@@ -180,20 +164,20 @@ class AuthService {
             const hashedPassword = await this.hashPassword(DEFAULT_PASSWORD);
             
             if (!validateEmail(user.email)) {
-                throw new AuthError(HttpStatusCode.BadRequest, responseMessage.InvalidEmail.message);
+                throw new AuthError(responseMessage.InvalidEmail.message, HttpStatusCode.BadRequest);
             }
 
             if (user.type === StaffType.SUBJECT_TEACHER && (!user.subjects || user.subjects.length === 0)) {
-                throw new AuthError(HttpStatusCode.BadRequest, "Subject teachers must have at least one subject assigned");
+                throw new AuthError("Subject teachers must have at least one subject assigned", HttpStatusCode.BadRequest);
             }
 
             if (user.type !== StaffType.SUBJECT_TEACHER && user.subjects && user.subjects.length > 0) {
-                throw new AuthError(HttpStatusCode.BadRequest, "Only subject teachers can have subjects assigned");
+                throw new AuthError("Only subject teachers can have subjects assigned", HttpStatusCode.BadRequest);
             }
 
             const school = await this.authRepositories.getSchoolById(user.schoolId);
             if (!school) {
-                throw new AuthError(HttpStatusCode.NotFound, "School not found");
+                throw new AuthError("School not found", HttpStatusCode.NotFound);
             }
             const registrationNumber = await generateRegistrationNumber(school.shortName);
             
@@ -214,7 +198,7 @@ class AuthService {
 
             const newUser = await this.authRepositories.createUser(userData);
             if(!newUser) {
-                throw new AuthError(HttpStatusCode.BadRequest, responseMessage.FailedToCreateUser.message);
+                throw new AuthError(responseMessage.FailedToCreateUser.message, HttpStatusCode.BadRequest);
             }
 
             await this.emailService.sendWelcomeEmail({

@@ -1,6 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { HttpStatusCode } from "axios";
-import { AuthError } from "../utils/errorhandler.js";
 import { BaseRepository } from "./base.repository.js";
 import { FastifyInstance } from "fastify";
 import prisma from "../model/prismaClient.js";

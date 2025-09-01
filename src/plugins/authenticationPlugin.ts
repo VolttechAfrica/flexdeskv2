@@ -31,10 +31,7 @@ export default fp(async (fastify) => {
   const { jwt: { secret: jwtSecret, expire: jwtExpire } } = env;
 
   if (!jwtSecret) {
-    throw new AuthError(
-      HttpStatusCode.InternalServerError, 
-      'JWT secret is not configured'
-    );
+    throw new AuthError('JWT secret is not configured', HttpStatusCode.InternalServerError);
   }
 
   fastify.register(fastifyJwt, {
@@ -51,10 +48,7 @@ export default fp(async (fastify) => {
       const refreshToken = request.headers['x-refresh-token'] as string;
 
       if (!token || !token.startsWith('Bearer ')) {
-        throw new UserError(
-          HttpStatusCode.Unauthorized, 
-          'Missing or invalid authorization token'
-        );
+        throw new UserError('Missing or invalid authorization token', HttpStatusCode.Unauthorized);
       }
 
       const authorizationService = new AuthorizationService(fastify);
@@ -106,19 +100,13 @@ export default fp(async (fastify) => {
             }
           } catch (refreshError: any) {
             fastify.log.error('Token refresh failed:', refreshError);
-            throw new TokenExpiredError(
-              HttpStatusCode.Unauthorized,
-              'Both access and refresh tokens are invalid. Please login again.'
-            );
+            throw new TokenExpiredError('Both access and refresh tokens are invalid. Please login again.', HttpStatusCode.Unauthorized);
           }
         }
         throw error as any;
       }
 
-      throw new TokenExpiredError(
-        HttpStatusCode.Unauthorized, 
-        'Token expired or invalid, please login again'
-      );
+      throw new TokenExpiredError('Token expired or invalid, please login again', HttpStatusCode.Unauthorized);
 
     } catch (error: any) {
       fastify.log.error('Authentication failed:', error);

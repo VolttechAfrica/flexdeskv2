@@ -86,8 +86,8 @@ class SupportTicketRepository extends BaseRepository {
       return createTicket;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -104,8 +104,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to find support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to find support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -131,8 +131,8 @@ class SupportTicketRepository extends BaseRepository {
       return updateTicket;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -155,8 +155,8 @@ class SupportTicketRepository extends BaseRepository {
       return deleteTicket;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to delete support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to delete support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -207,8 +207,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get all support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get all support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -228,8 +228,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by email: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -249,8 +249,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by status: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -270,8 +270,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by priority: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by priority: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -291,8 +291,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by category: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by category: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -358,8 +358,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support ticket stats: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support ticket stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -379,8 +379,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get recent support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get recent support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -427,8 +427,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to search support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to search support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -443,8 +443,8 @@ class SupportTicketRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support ticket count: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support ticket count: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }

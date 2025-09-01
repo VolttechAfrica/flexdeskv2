@@ -13,7 +13,7 @@ class UserActivityService {
 
     async createUserActivity(userId: string, activity: string, ipAddress: string, hostName: string): Promise<boolean> {
         const userActivity = await this.userActivityRepositories.createUserActivity(userId, activity, ipAddress, hostName);
-        if(!userActivity) throw new UserActivityError(HttpStatusCode.InternalServerError, "Failed to create user activity");
+        if(!userActivity) throw new UserActivityError("Failed to create user activity", HttpStatusCode.InternalServerError);
         return true;
     }
 }

@@ -7,7 +7,6 @@ import AuthorizationService from '../services/authorization.service.js';
 
 async function authRoutes(app: FastifyInstance){
     const authHandler = new AuthController(app);
-    
 
     app.route({
         method: "POST",
@@ -22,7 +21,8 @@ async function authRoutes(app: FastifyInstance){
                 }
             }
         },
-        handler: authHandler.login.bind(authHandler)
+        preHandler: [app.authRateLimit],
+        handler: authHandler.login.bind(authHandler) as any
     })
 
     app.route({
@@ -57,7 +57,6 @@ async function authRoutes(app: FastifyInstance){
                     status: true,
                 });
             } catch (error: any) {
-        
                 return reply.status(401).send({ 
                     error: error.message || 'Failed to refresh token',
                     forceLogout: error.message?.includes('logged out') || false

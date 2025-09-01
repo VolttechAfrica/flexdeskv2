@@ -31,7 +31,6 @@ export const recordMetric = async (
       statsd.gauge(name, value, tags);
     });
   } catch (error) {
-    // Silently fail - don't let metrics interfere with the main application
     console.error('Failed to submit metric:', error);
   }
 };
@@ -46,6 +45,13 @@ export const Metrics = {
   CACHE_MISS: 'cache.miss',
   AUTH_SUCCESS: 'auth.success',
   AUTH_FAILURE: 'auth.failure',
+
+  // Rate limiting metrics
+  RATE_LIMIT_ATTEMPT: 'rate_limit.attempt',
+  RATE_LIMIT_BLOCKED: 'rate_limit.blocked',
+  RATE_LIMIT_RESPONSE_TIME: 'rate_limit.response_time',
+  RATE_LIMIT_WINDOW_SIZE: 'rate_limit.window_size',
+  RATE_LIMIT_MAX_REQUESTS: 'rate_limit.max_requests',
 };
 
 export default tracer; 

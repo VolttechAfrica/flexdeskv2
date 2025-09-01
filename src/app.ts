@@ -8,19 +8,20 @@ import cloudinaryRoutes from "./routes/cloudinary.routes.js";
 
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
-import rateLimit from "@fastify/rate-limit";
 import fastify, { FastifyPluginAsync } from "fastify";
 import loggerPlugin from "./plugins/logger.js";
 import jwtPlugin from "./plugins/authenticationPlugin.js";
 import bcryptPlugin from "./plugins/bcryptPlugin.js";
 import redisPlugin from "./plugins/redisPlugin.js";
 import sensible from "./plugins/sensiblePlugin.js";
-import { FastifyRequest } from "fastify";
 import nodemailerPlugin from "./plugins/nodemailerPlugin.js";
 import metricsPlugin from "./plugins/metrics.js";
+import rateLimitPlugin from "./plugins/rateLimitPlugin.js";
 import DatabaseMonitor from "./utils/db-monitor.js";
 import CacheMonitor from "./utils/cache-monitor.js";
 import { PrismaClient } from "@prisma/client";
+
+
 
 const monitoringPlugin: FastifyPluginAsync = async (app) => {
   const prisma = new PrismaClient();
@@ -68,18 +69,11 @@ export const buildServer = async () => {
   });
   app.register(sensible);
 
-  app.register(rateLimit, {
-    max: 50,
-    timeWindow: "1 minute",
-    skipOnError: false,
-    errorResponseBuilder: (req: FastifyRequest, context: any) => {
-      return {
-        statusCode: 429,
-        error: "Too Many Requests",
-        message: "You have exceeded the request limit. Please try again later.",
-        retryAfter: context.after,
-      };
-    },
+
+  app.addHook("preHandler", async (request, reply) => {
+    if (app.generalRateLimit) {
+      await app.generalRateLimit(request, reply);
+    }
   });
 
   app.setNotFoundHandler((request, reply) => {
@@ -130,6 +124,7 @@ export const buildServer = async () => {
   });
 
   app.register(metricsPlugin);
+  app.register(rateLimitPlugin);
   app.register(monitoringPlugin);
 
   // routes

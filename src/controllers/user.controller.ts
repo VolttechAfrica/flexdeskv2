@@ -16,7 +16,7 @@ class UserController {
 
     async completeOnboarding(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            if (!request.user) throw new UserError(responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
             
             const data = request.body as any;
             const result = await this.userService.completeOnboarding(data, request.user.id);
@@ -32,7 +32,7 @@ class UserController {
 
     async updateProfilePicture(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            if (!request.user) throw new UserError(responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
             
             const { profilePicture } = request.body as any;
             const result = await this.userService.updateProfilePicture(profilePicture, request.user.id);
@@ -48,7 +48,7 @@ class UserController {
 
     async deleteFirstTimeLogin(request: FastifyRequest, reply: FastifyReply) {
         try {
-            if (!request.user) throw new UserError(HttpStatusCode.Unauthorized, responseMessage.Unauthorized.message);
+            if (!request.user) throw new UserError(responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
             
             const result = await this.userService.deleteFirstTimeLogin(request.user.id);
             

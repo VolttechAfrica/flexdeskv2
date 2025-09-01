@@ -29,8 +29,8 @@ class RedisService {
   private handleError(operation: string, key: string, error: unknown): never {
     this.logger.error(`Redis ${operation} error for key "${key}":`, error as any);
     throw new UserError(
-      HttpStatusCode.InternalServerError,
-      `Redis operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Redis operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      HttpStatusCode.InternalServerError
     ) as any;
   }
 

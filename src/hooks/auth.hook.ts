@@ -11,10 +11,9 @@ export default async function authorize(permissionName: string){
       const hasPermission = permissions.includes(permissionName) || permissions.includes("assign_superadmin");
 
       if (!hasPermission) {
-        throw new UserError(HttpStatusCode.Forbidden, "Forbidden: Permission denied");
+        throw new UserError("Forbidden: Permission denied", HttpStatusCode.Forbidden);
       }
     } catch (err: any) {
-      // Re-throw the error to let Fastify's error handler manage it
       throw err;
     }
   };

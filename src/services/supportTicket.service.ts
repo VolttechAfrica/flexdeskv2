@@ -92,40 +92,40 @@ class SupportTicketService {
       // Validate required fields
       if (!data.firstName || !data.lastName || !data.email || !data.message) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "First name, last name, email, and message are required"
+          "First name, last name, email, and message are required",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate email format
       if (!this.validateEmail(data.email)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Invalid email format"
+          "Invalid email format",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate phone number if provided
       if (data.phone && !this.validatePhone(data.phone)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Invalid phone number format"
+          "Invalid phone number format",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate message length
       if (!this.validateMessage(data.message)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Message must be between 10 and 1000 characters"
+          "Message must be between 10 and 1000 characters",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate name length
       if (!this.validateName(data.firstName) || !this.validateName(data.lastName)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "First name and last name must be between 2 and 100 characters"
+          "First name and last name must be between 2 and 100 characters",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -146,8 +146,8 @@ class SupportTicketService {
       
       if (pendingTickets.length >= 5) {
         throw new UserError(
-          HttpStatusCode.TooManyRequests,
-          "You have too many pending support tickets. Please wait for a response before creating a new one."
+          "You have too many pending support tickets. Please wait for a response before creating a new one.",
+          HttpStatusCode.TooManyRequests
         );
       }
 
@@ -166,8 +166,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -176,8 +176,8 @@ class SupportTicketService {
     try {
       if (!ticketId) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Ticket ID is required"
+          "Ticket ID is required",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -185,8 +185,8 @@ class SupportTicketService {
       
       if (!ticket) {
         throw new UserError(
-          HttpStatusCode.NotFound,
-          "Support ticket not found"
+          "Support ticket not found",
+          HttpStatusCode.NotFound
         );
       }
 
@@ -199,8 +199,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -209,8 +209,8 @@ class SupportTicketService {
     try {
       if (!ticketId) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Ticket ID is required"
+          "Ticket ID is required",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -218,47 +218,47 @@ class SupportTicketService {
       const existingTicket = await this.supportTicketRepository.findSupportTicketById(ticketId);
       if (!existingTicket) {
         throw new UserError(
-          HttpStatusCode.NotFound,
-          "Support ticket not found"
+          "Support ticket not found",
+          HttpStatusCode.NotFound
         );
       }
 
       // Validate email if provided
       if (data.email && !this.validateEmail(data.email)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Invalid email format"
+          "Invalid email format",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate phone if provided
       if (data.phone && !this.validatePhone(data.phone)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Invalid phone number format"
+          "Invalid phone number format",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate message if provided
       if (data.message && !this.validateMessage(data.message)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Message must be between 10 and 1000 characters"
+          "Message must be between 10 and 1000 characters",
+          HttpStatusCode.BadRequest
         );
       }
 
       // Validate names if provided
       if (data.firstName && !this.validateName(data.firstName)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "First name must be between 2 and 100 characters"
+          "First name must be between 2 and 100 characters",
+          HttpStatusCode.BadRequest
         );
       }
 
       if (data.lastName && !this.validateName(data.lastName)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Last name must be between 2 and 100 characters"
+          "Last name must be between 2 and 100 characters",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -288,8 +288,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -298,8 +298,8 @@ class SupportTicketService {
     try {
       if (!ticketId) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Ticket ID is required"
+          "Ticket ID is required",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -307,8 +307,8 @@ class SupportTicketService {
       const existingTicket = await this.supportTicketRepository.findSupportTicketById(ticketId);
       if (!existingTicket) {
         throw new UserError(
-          HttpStatusCode.NotFound,
-          "Support ticket not found"
+          "Support ticket not found",
+          HttpStatusCode.NotFound
         );
       }
 
@@ -327,8 +327,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to delete support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to delete support ticket: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -344,8 +344,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -354,8 +354,8 @@ class SupportTicketService {
     try {
       if (!email || !this.validateEmail(email)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Valid email is required"
+          "Valid email is required",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -371,8 +371,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by email: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -388,8 +388,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by status: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -405,8 +405,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by priority: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by priority: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -422,8 +422,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support tickets by category: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support tickets by category: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -438,8 +438,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support ticket stats: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support ticket stats: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -448,8 +448,8 @@ class SupportTicketService {
     try {
       if (limit < 1 || limit > 100) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Limit must be between 1 and 100"
+          "Limit must be between 1 and 100",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -465,8 +465,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get recent support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get recent support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -475,8 +475,8 @@ class SupportTicketService {
     try {
       if (!query || query.trim().length < 2) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Search query must be at least 2 characters long"
+          "Search query must be at least 2 characters long",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -493,8 +493,8 @@ class SupportTicketService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to search support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to search support tickets: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -509,8 +509,8 @@ class SupportTicketService {
       };
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get support ticket count: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get support ticket count: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -520,8 +520,8 @@ class SupportTicketService {
       return await this.updateSupportTicket(ticketId, { status });
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update ticket status: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update ticket status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -531,8 +531,8 @@ class SupportTicketService {
       return await this.updateSupportTicket(ticketId, { priority });
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update ticket priority: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update ticket priority: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -542,8 +542,8 @@ class SupportTicketService {
       return await this.updateSupportTicket(ticketId, { category });
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update ticket category: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update ticket category: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }

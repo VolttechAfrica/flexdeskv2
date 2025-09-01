@@ -129,8 +129,8 @@ class UserRepositories extends BaseRepository {
         return result;
       } catch (error) {
         throw new AuthError(
-          HttpStatusCode.InternalServerError,
-          responseMessage.InternalServerError.message
+          responseMessage.InternalServerError.message,
+          HttpStatusCode.InternalServerError
         );
       }
     });

@@ -53,11 +53,11 @@ class ClassRepository extends BaseRepository {
     async getClassWithinRange(range: ClassRange[], schoolId: string): Promise<ClassData[]> {
         try {
             if (!range || range.length === 0) {
-                throw new UserError(HttpStatusCode.BadRequest, "Class range is required");
+                throw new UserError("Class range is required", HttpStatusCode.BadRequest);
             }
 
             if (!schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "School ID is required");
+                throw new UserError("School ID is required", HttpStatusCode.BadRequest);
             }
 
             const cacheKey = `class:range:${range.map((r) => r.level).join(',')}:${schoolId}`;
@@ -98,7 +98,7 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to get class within range: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to get class within range: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
@@ -107,7 +107,7 @@ class ClassRepository extends BaseRepository {
             const { schoolId, level, includeInactive = false } = params;
             
             if (!schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "School ID is required");
+                throw new UserError("School ID is required", HttpStatusCode.BadRequest);
             }
 
             const cacheKey = `classes:${schoolId}:${level || 'all'}:${includeInactive}`;
@@ -148,18 +148,18 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to get all classes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to get all classes: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
     async getClassById(id: string, schoolId: string): Promise<ClassData | null> {
         try {
             if (!id) {
-                throw new UserError(HttpStatusCode.BadRequest, "Class ID is required");
+                throw new UserError("Class ID is required", HttpStatusCode.BadRequest);
             }
 
             if (!schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "School ID is required");
+                throw new UserError("School ID is required", HttpStatusCode.BadRequest);
             }
 
             const cacheKey = `class:${id}:${schoolId}`;
@@ -195,7 +195,7 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to get class by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to get class by ID: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
@@ -204,11 +204,11 @@ class ClassRepository extends BaseRepository {
             const { name, level, schoolId } = data;
 
             if (!name || !level || !schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "Name, level, and school ID are required");
+                throw new UserError("Name, level, and school ID are required", HttpStatusCode.BadRequest);
             }
 
             if (level < 1 || level > 12) {
-                throw new UserError(HttpStatusCode.BadRequest, "Level must be between 1 and 12");
+                throw new UserError("Level must be between 1 and 12", HttpStatusCode.BadRequest);
             }
 
             return this.executeQuery('createClass', 'schoolClass', async () => {
@@ -249,18 +249,18 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to create class: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to create class: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
     async updateClass(id: string, schoolId: string, data: UpdateClassData): Promise<ClassData> {
         try {
             if (!id || !schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "Class ID and school ID are required");
+                throw new UserError("Class ID and school ID are required", HttpStatusCode.BadRequest);
             }
 
             if (data.level && (data.level < 1 || data.level > 12)) {
-                throw new UserError(HttpStatusCode.BadRequest, "Level must be between 1 and 12");
+                throw new UserError("Level must be between 1 and 12", HttpStatusCode.BadRequest);
             }
 
             return this.executeQuery('updateClass', 'schoolClass', async () => {
@@ -302,14 +302,14 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to update class: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to update class: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
     async deleteClass(id: string, schoolId: string): Promise<void> {
         try {
             if (!id || !schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "Class ID and school ID are required");
+                throw new UserError("Class ID and school ID are required", HttpStatusCode.BadRequest);
             }
 
             await this.executeQuery('deleteClass', 'schoolClass', async () => {
@@ -330,14 +330,14 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to delete class: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to delete class: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 
     async getClassCount(schoolId: string): Promise<number> {
         try {
             if (!schoolId) {
-                throw new UserError(HttpStatusCode.BadRequest, "School ID is required");
+                throw new UserError("School ID is required", HttpStatusCode.BadRequest);
             }
 
             const cacheKey = `class:count:${schoolId}`;
@@ -354,7 +354,7 @@ class ClassRepository extends BaseRepository {
             if (error instanceof UserError) {
                 throw error;
             }
-            throw new UserError(HttpStatusCode.InternalServerError, `Failed to get class count: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new UserError(`Failed to get class count: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
         }
     }
 }
