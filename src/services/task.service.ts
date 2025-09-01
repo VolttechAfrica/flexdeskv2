@@ -64,8 +64,8 @@ export default class TaskService {
       // Validate dates
       if (data.startDate > data.endDate) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Start date must be before end date"
+          "Start date must be before end date",
+          HttpStatusCode.BadRequest
         );
       }
       const task = await this.taskRepository.createTask(data);
@@ -75,8 +75,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -85,7 +85,10 @@ export default class TaskService {
     try {
       const task = await this.taskRepository.findTaskById(taskId);
       if (!task) {
-        throw new UserError(HttpStatusCode.NotFound, "Task not found");
+        throw new UserError(
+          "Task not found",
+          HttpStatusCode.NotFound
+        );
       }
       return task;
     } catch (error) {
@@ -93,8 +96,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -104,14 +107,17 @@ export default class TaskService {
       // Check if task exists
       const task = await this.getTaskById(taskId);
       if (!task) {
-        throw new UserError(HttpStatusCode.NotFound, "Task not found");
+        throw new UserError(
+          "Task not found",
+          HttpStatusCode.NotFound
+        );
       }
 
       // Validate dates if both are provided
       if (data.startDate && data.endDate && new Date(data.startDate) > new Date(data.endDate)) {
         throw new UserError(
-          HttpStatusCode.BadRequest,
-          "Start date must be before end date"
+          "Start date must be before end date",
+          HttpStatusCode.BadRequest
         );
       }
 
@@ -126,8 +132,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -137,7 +143,10 @@ export default class TaskService {
       // Check if task exists
       const task = await this.getTaskById(taskId);
       if (!task) {
-        throw new UserError(HttpStatusCode.NotFound, "Task not found");
+        throw new UserError(
+          "Task not found",
+          HttpStatusCode.NotFound
+        );
       }
 
       await this.taskRepository.deleteTask(taskId);
@@ -147,8 +156,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -158,7 +167,10 @@ export default class TaskService {
       // Check if task exists
       const task = await this.getTaskById(taskId);
       if (!task) {
-        throw new UserError(HttpStatusCode.NotFound, "Task not found");
+        throw new UserError(
+          "Task not found",
+          HttpStatusCode.NotFound
+        );
       }
 
       await this.taskRepository.createTaskMember({
@@ -173,8 +185,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to add task member: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to add task member: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -184,7 +196,10 @@ export default class TaskService {
       // Check if task exists
       const task = await this.getTaskById(taskId);
       if (!task) {
-        throw new UserError(HttpStatusCode.NotFound, "Task not found");
+        throw new UserError(
+          "Task not found",
+          HttpStatusCode.NotFound
+        );
       }
 
       await this.taskRepository.updateTaskMember(taskId, memberId, {
@@ -198,8 +213,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update task member status: ${error instanceof Error ? error.message : 'Unknown error'}`
+          `Failed to update task member status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -213,8 +228,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get tasks by school: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get tasks by school: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -227,8 +242,8 @@ export default class TaskService {
         throw error;
       }
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to get tasks by member: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to get tasks by member: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }

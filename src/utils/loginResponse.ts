@@ -4,7 +4,7 @@ import { responseMessage } from "./responseMessage.js";
 
 
 const UserResponse = async (data: any, token?: string) => {
-  if (!data) throw new AuthError(HttpStatusCode.BadRequest, 'Can not return empty object');
+  if (!data) throw new AuthError('Can not return empty object', HttpStatusCode.BadRequest);
 
   return {
     status: true,

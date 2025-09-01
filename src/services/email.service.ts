@@ -42,8 +42,8 @@ class EmailService {
             return true;
         } catch (error) {
             throw new UserError(
-                HttpStatusCode.InternalServerError,
-                `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`
+                `Failed to send email: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                HttpStatusCode.InternalServerError
             );
         }
     }

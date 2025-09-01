@@ -35,8 +35,8 @@ class CloudinaryController {
         } catch (error: any) {
             this.app.log.error('Error generating signature:', error);
             throw new UserError(
-                HttpStatusCode.InternalServerError,
-                'Failed to generate signature'
+                'Failed to generate signature',
+                HttpStatusCode.InternalServerError
             );
         }
     }

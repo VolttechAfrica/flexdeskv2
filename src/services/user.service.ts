@@ -50,20 +50,20 @@ class UserService {
     async getUserInfo(staffId: string): Promise<any> {
         try {
             const user = await this.userRepositories.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
             const userResponse = await UserResponse(user);
             return userResponse;
 
         } catch (error: any) {
             this.app.log.error('Error getting user info:', error);
-            throw new UserError(HttpStatusCode.InternalServerError, responseMessage.FailedToUpdateUser.message);
+            throw new UserError(responseMessage.FailedToUpdateUser.message, HttpStatusCode.InternalServerError);
         }
     }
 
     async completeOnboarding(data: OnboardingData, staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
 
             const email = user?.data?.email as string;
 
@@ -115,18 +115,18 @@ class UserService {
 
         } catch (error: any) {
             this.app.log.error('Error completing onboarding:', error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to complete onboarding");
+            throw new UserError("Failed to complete onboarding", HttpStatusCode.InternalServerError);
         }
     }
 
     async updateProfilePicture(profilePicture: string, staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
 
             const userData = { profilePicture, staffId };
             const updateUser = await this.userRepositories.updateProfilePicture(userData);
-            if (!updateUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to update profile picture");
+            if (!updateUser) throw new UserError("Failed to update profile picture", HttpStatusCode.InternalServerError);
 
             await this.redis.delete(`USER:${staffId}`);
 
@@ -137,17 +137,17 @@ class UserService {
 
         } catch (error: any) {
             this.app.log.error('Error updating profile picture:', error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to update profile picture");
+            throw new UserError("Failed to update profile picture", HttpStatusCode.InternalServerError);
         }
     }
 
     async deleteFirstTimeLogin(staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(HttpStatusCode.NotFound, responseMessage.UserNotFound.message);
+            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
 
             const deleteUser = await this.userRepositories.deleteFirstTimeLogin(staffId);
-            if (!deleteUser) throw new UserError(HttpStatusCode.InternalServerError, "Failed to delete first time login");
+            if (!deleteUser) throw new UserError("Failed to delete first time login", HttpStatusCode.InternalServerError);
 
             return {
                 status: true,
@@ -156,7 +156,7 @@ class UserService {
 
         } catch (error: any) {
             this.app.log.error('Error deleting first time login:', error);
-            throw new UserError(HttpStatusCode.InternalServerError, "Failed to delete first time login");
+            throw new UserError("Failed to delete first time login", HttpStatusCode.InternalServerError);
         }
     }
 }
