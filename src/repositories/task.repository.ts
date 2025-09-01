@@ -81,7 +81,7 @@ class TaskRepository extends BaseRepository {
       const classRanges = teachers.map((teacher) => this.defineClassRange(teacher?.class?.level || 0));
       return classRanges;
     } catch (error) {
-      throw new UserError(HttpStatusCode.InternalServerError, `Failed to get teacher class range: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new UserError(`Failed to get teacher class range: ${error instanceof Error ? error.message : 'Unknown error'}`, HttpStatusCode.InternalServerError);
     }
   }
 
@@ -172,8 +172,8 @@ class TaskRepository extends BaseRepository {
       return result;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create task process: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create task process: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -184,8 +184,8 @@ class TaskRepository extends BaseRepository {
       return await this.createTaskProcess(data);
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -200,8 +200,8 @@ class TaskRepository extends BaseRepository {
       return addTaskMembers;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create task members: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create task members: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -240,8 +240,8 @@ class TaskRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to find task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to find task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -257,8 +257,8 @@ class TaskRepository extends BaseRepository {
       return updateTask;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -273,8 +273,8 @@ class TaskRepository extends BaseRepository {
       return deleteTask;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -290,8 +290,8 @@ class TaskRepository extends BaseRepository {
       return createTaskMember;
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to create task member: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to create task member: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -306,8 +306,8 @@ class TaskRepository extends BaseRepository {
       });
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to update task member: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to update task member: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -352,8 +352,8 @@ class TaskRepository extends BaseRepository {
       );
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to find tasks by school: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to find tasks by school: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }
@@ -399,8 +399,8 @@ class TaskRepository extends BaseRepository {
       });
     } catch (error) {
       throw new UserError(
-        HttpStatusCode.InternalServerError,
-        `Failed to find tasks by member: ${error instanceof Error ? error.message : 'Unknown error'}`
+        `Failed to find tasks by member: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        HttpStatusCode.InternalServerError
       );
     }
   }

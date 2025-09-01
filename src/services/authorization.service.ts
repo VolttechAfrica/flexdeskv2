@@ -82,7 +82,7 @@ class AuthorizationService {
         try {
             const isBlacklisted = await this.redis.exists(REDIS_KEYS.TOKEN_BLACKLIST(token));
             if (isBlacklisted) {
-                throw new AuthError(HttpStatusCode.Unauthorized, 'Token has been revoked');
+                throw new AuthError('Token has been revoked', HttpStatusCode.Unauthorized);
             }
 
             const cachedPayload = await this.redis.get<TokenPayload>(cacheKey);
@@ -109,9 +109,9 @@ class AuthorizationService {
             await this.dbMonitor.trackError(error);
             
             if (error?.name === 'TokenExpiredError') {
-                throw new TokenExpiredError(HttpStatusCode.Unauthorized, 'Token has expired');
+                throw new TokenExpiredError('Token has expired', HttpStatusCode.Unauthorized);
             }
-            throw new AuthError(HttpStatusCode.Unauthorized, error?.message || responseMessage.Unauthorized.message);
+            throw new AuthError(error?.message || responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
         }
     }
 
@@ -193,7 +193,7 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token revocation error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to revoke refresh token');
+            throw new AuthError('Failed to revoke refresh token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -207,7 +207,6 @@ class AuthorizationService {
             // Get the refresh token before deleting it so we can blacklist it
             const refreshToken = await this.getRefreshToken(userId);
             
-            // Delete from Redis
             await Promise.all([
                 this.redis.delete(REDIS_KEYS.REFRESH_TOKEN(userId)),
                 this.redis.delete(REDIS_KEYS.USER_CACHE(userId))
@@ -222,7 +221,7 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Force logout error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to force logout');
+            throw new AuthError('Failed to force logout', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -234,7 +233,7 @@ class AuthorizationService {
         
         try {
             if (!refreshToken) {
-                throw new AuthError(HttpStatusCode.BadRequest, 'Refresh token is required');
+                throw new AuthError('Refresh token is required', HttpStatusCode.BadRequest);
             }
             const refreshTokenWithoutBearer = refreshToken.replace('Bearer ', '');
 
@@ -242,14 +241,14 @@ class AuthorizationService {
             
             const isAllowed = await this.checkRefreshRateLimit(decoded.id);
             if (!isAllowed) {
-                throw new AuthError(HttpStatusCode.TooManyRequests, 'Too many refresh attempts. Please try again later.');
+                throw new AuthError('Too many refresh attempts. Please try again later.', HttpStatusCode.TooManyRequests);
             }
 
             const storedRefreshToken = await this.getRefreshToken(decoded.id);
             if (!storedRefreshToken || storedRefreshToken !== refreshTokenWithoutBearer) {
                 // Force logout user if refresh token is invalid
                 await this.forceLogout(decoded.id);
-                throw new AuthError(HttpStatusCode.Unauthorized, 'Invalid refresh token. User has been logged out.');
+                throw new AuthError('Invalid refresh token. User has been logged out.', HttpStatusCode.Unauthorized);
             }
 
             const newAccessToken = await this.app.jwt.sign(decoded, { expiresIn: TOKEN_TTL.ACCESS });
@@ -265,13 +264,13 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             if (error?.name === 'TokenExpiredError') {
-                throw new TokenExpiredError(HttpStatusCode.Unauthorized, 'Refresh token has expired');
+                throw new TokenExpiredError('Refresh token has expired', HttpStatusCode.Unauthorized);
             }
             if (error instanceof AuthError || error instanceof TokenExpiredError) {
                 throw error;
             }
             this.logger.error('Refresh token error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to refresh token');
+            throw new AuthError('Failed to refresh token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -318,7 +317,7 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Login token generation error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to generate login token');
+            throw new AuthError('Failed to generate login token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -335,7 +334,7 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token generation error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Unable to generate token');
+            throw new AuthError('Unable to generate token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -347,7 +346,7 @@ class AuthorizationService {
         
         try {
             if (!token) {
-                throw new AuthError(HttpStatusCode.Unauthorized, 'Missing authorization token');
+                throw new AuthError('Missing authorization token', HttpStatusCode.Unauthorized);
             }
 
             const { id: decodedId, email, userType, schoolId, role } = await this.verifyToken(token);
@@ -355,11 +354,11 @@ class AuthorizationService {
             // Check user cache for performance
             const cachedUserId = await this.redis.get<string>(REDIS_KEYS.USER_CACHE(decodedId));
             if (!cachedUserId) {
-                throw new AuthError(HttpStatusCode.Unauthorized, 'User session expired');
+                throw new AuthError('User session expired', HttpStatusCode.Unauthorized);
             }
 
             if (decodedId !== cachedUserId) {
-                throw new AuthError(HttpStatusCode.Unauthorized, 'Invalid user session');
+                throw new AuthError('Invalid user session', HttpStatusCode.Unauthorized);
             }
 
             await this.dbMonitor.trackQuery('authorizeUser', Date.now() - startTime);
@@ -429,7 +428,7 @@ class AuthorizationService {
             });
         } catch (error: any) {
             this.logger.error('Token blacklist error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to blacklist token');
+            throw new AuthError('Failed to blacklist token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -454,7 +453,7 @@ class AuthorizationService {
             this.logger.info('Access token blacklisted successfully');
         } catch (error: any) {
             this.logger.error('Access token revocation error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to revoke access token');
+            throw new AuthError('Failed to revoke access token', HttpStatusCode.InternalServerError);
         }
     }
 
@@ -480,7 +479,7 @@ class AuthorizationService {
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token revocation error:', error as any);
-            throw new AuthError(HttpStatusCode.InternalServerError, 'Failed to revoke all tokens');
+            throw new AuthError('Failed to revoke all tokens', HttpStatusCode.InternalServerError);
         }
     }
 

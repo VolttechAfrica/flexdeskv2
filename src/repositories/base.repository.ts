@@ -23,7 +23,8 @@ export abstract class BaseRepository {
   protected async withCache<T>(
     cacheKey: string,
     operation: string,
-    queryFn: () => Promise<T>
+    queryFn: () => Promise<T>,
+    ttl: number = 3600
   ): Promise<T> {
     try {
       const cachedData = await this.redis.get(cacheKey);
@@ -34,7 +35,6 @@ export abstract class BaseRepository {
 
       await recordMetric(Metrics.CACHE_MISS, 1, [`key:${cacheKey}`]);
 
-      // Get from database
       const startTime = Date.now();
       const data = await queryFn();
       const duration = Date.now() - startTime;
@@ -45,10 +45,11 @@ export abstract class BaseRepository {
       ]);
 
       if (data) {
+        await this.redis.set({ key: cacheKey, value: JSON.stringify(data), ttl });
         const userInfoKey = `user:info:${(data as any)?.id}`;
-        await this.redis.set({ key: cacheKey, value: JSON.stringify(data), ttl: 3600 });
-        await this.redis.set({ key: userInfoKey, value: JSON.stringify(data), ttl: 3600 });
-        console.log(userInfoKey);
+        if (userInfoKey !== cacheKey) {
+          await this.redis.set({ key: userInfoKey, value: JSON.stringify(data), ttl });
+        }
       }
 
       return data;
@@ -70,8 +71,21 @@ export abstract class BaseRepository {
         `key:${cacheKey}`,
         `error:${error instanceof Error ? error.name : 'unknown'}`
       ]);
-      throw error;
+      // Don't throw error for cache invalidation failures
+      this.fastify.log.warn(`Failed to invalidate cache: ${cacheKey}`, error as any);
     }
+  }
+
+  protected async invalidateUserCache(userId: string): Promise<void> {
+    const cacheKeys = [
+      `user:info:${userId}`,
+      `user:profile:${userId}`,
+      `user:email:*` // TODO: This would need pattern matching in Redis
+    ];
+    
+    await Promise.allSettled(
+      cacheKeys.map(key => this.invalidateCache(key))
+    );
   }
 
   protected async executeQuery<T>(
@@ -99,4 +113,32 @@ export abstract class BaseRepository {
       throw error;
     }
   }
-} 
+
+  protected async executeTransaction<T>(
+    operation: string,
+    entity: string,
+    transactionFn: (tx: Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => Promise<T>
+  ): Promise<T> {
+    try {
+      const startTime = Date.now();
+      const result = await this.prisma.$transaction(transactionFn);
+      const duration = Date.now() - startTime;
+
+      await recordMetric(Metrics.DB_QUERY, 1, [
+        `operation:${operation}`,
+        `entity:${entity}`,
+        `type:transaction`,
+        `duration:${duration}`
+      ]);
+      return result;
+    } catch (error) {
+      await recordMetric(Metrics.DB_ERROR, 1, [
+        `operation:${operation}`,
+        `entity:${entity}`,
+        `type:transaction`,
+        `error:${error instanceof Error ? error.name : 'unknown'}`
+      ]);
+      throw error;
+    }
+  }
+}

@@ -54,7 +54,7 @@ class SchoolRepository extends BaseRepository {
     const term = await this.prisma.term.findFirst({
       where: { schoolId: data.schoolId, name: data.name, year: data.year, term: data.term },
     });
-    if (term) throw new UserError(HttpStatusCode.BadRequest, "Term already exists");
+    if (term) throw new UserError("Term already exists", HttpStatusCode.BadRequest);
     return this.executeQuery('createTerm', 'term', async () => {
       const term = await this.prisma.term.create({
         data,

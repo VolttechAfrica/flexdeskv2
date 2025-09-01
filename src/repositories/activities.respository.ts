@@ -15,7 +15,7 @@ class ActivitiesRepositories {
         const userActivity = await this.prisma.userActivity.create({
             data: { userId, activity, ipAddress, hostName }
         });
-        if(!userActivity) throw new UserActivityError(HttpStatusCode.InternalServerError, "Failed to create user activity");
+        if(!userActivity) throw new UserActivityError("Failed to create user activity", HttpStatusCode.InternalServerError);
         return true;
     }
 }

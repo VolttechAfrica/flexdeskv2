@@ -28,6 +28,7 @@ const env = {
     user: process.env.EMAIL_USER,
     password: process.env.EMAIL_PASSWORD,
   },
+  
   datadog: {
     apiKey: process.env.DD_API_KEY,
     appKey: process.env.DD_APP_KEY,
