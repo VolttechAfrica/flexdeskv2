@@ -20,6 +20,7 @@ import rateLimitPlugin from "./plugins/rateLimitPlugin.js";
 import DatabaseMonitor from "./utils/db-monitor.js";
 import CacheMonitor from "./utils/cache-monitor.js";
 import { PrismaClient } from "@prisma/client";
+import forgotPasswordRoutes from "./routes/forgotPassword.routes.js";
 
 
 
@@ -63,7 +64,7 @@ export const buildServer = async () => {
   app.register(nodemailerPlugin);
   app.register(helmet);
   app.register(cors, {
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://flexdesk-frontend.vercel.app'],
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://flexdesk-frontend.vercel.app', 'http://192.168.2.38:3000'],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   });
@@ -134,6 +135,7 @@ export const buildServer = async () => {
   app.register(taskRoutes, { prefix: "/api/v2" });
   app.register(supportTicketRoutes, { prefix: "/api/v2/support" });
   app.register(cloudinaryRoutes, { prefix: "/api/v2/cloudinary" });
+  app.register(forgotPasswordRoutes, { prefix: "/api/v2/auth" });
   app.get("/", async (request, reply) => {
     reply.unauthorized();
   });

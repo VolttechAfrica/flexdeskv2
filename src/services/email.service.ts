@@ -1,6 +1,8 @@
 import { FastifyInstance } from "fastify";
 import env from "../config/env.js";
 import welcomeEmail from "../utils/emailboilerplate/welcome.js";
+import forgotPasswordEmail from "../utils/emailboilerplate/forgotpassword.js";
+import passwordChangeConfirmation from "../utils/emailboilerplate/passwordchangeconfirmation.js";
 import { UserError } from "../utils/errorhandler.js";
 import { HttpStatusCode } from "axios";
 import { Transporter } from "nodemailer";
@@ -63,6 +65,23 @@ class EmailService {
     }
 
     async sendGeneralEmail(to: string, subject: string, html: string): Promise<boolean> {
+        return await this.sendEmail({ to, subject, html });
+    }
+
+    async sendForgotPasswordEmail({ to, name, otp }: { to: string; name: string; otp: string }): Promise<boolean> {
+        const subject = "Password Reset OTP - Flexdesk";
+        const html = forgotPasswordEmail
+            .replace("{user_name}", name)
+            .replace("{OTP}", otp);
+
+        return await this.sendEmail({ to, subject, html });
+    }
+
+    async sendPasswordChangeConfirmationEmail({ to, name }: { to: string; name: string }): Promise<boolean> {
+        const subject = "Password Changed Successfully - Flexdesk";
+        const html = passwordChangeConfirmation
+            .replace("{user_name}", name);
+
         return await this.sendEmail({ to, subject, html });
     }
 }

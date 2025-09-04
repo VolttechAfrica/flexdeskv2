@@ -17,7 +17,8 @@ const TOKEN_TTL = {
 const REDIS_KEYS = {
     REFRESH_TOKEN: (id: string) => `refreshToken:${id}`,
     USER_CACHE: (id: string) => `user:${id}`,
-    TOKEN_BLACKLIST: (token: string) => `blacklist:${token}`
+    TOKEN_BLACKLIST: (token: string) => `blacklist:${token}`,
+    TOKEN_CACHE: (hashedToken: string) => `token:${hashedToken}`,
 } as const;
 
 const SECURITY_CONFIG = {
@@ -72,37 +73,62 @@ class AuthorizationService {
         this.logger = app.log;
     }
 
+    // =========================
+    // Private utility helpers
+    // =========================
+
+    private stripBearer(token: string): string {
+        return token?.startsWith('Bearer ') ? token.slice(7) : token;
+    }
+
+    private cacheKeyForToken(token: string): string {
+        return REDIS_KEYS.TOKEN_CACHE(this.hashToken(token));
+    }
+
+    private async cacheTokenPayload(cacheKey: string, payload: TokenPayload, ttlSeconds: number = 300): Promise<void> {
+        await this.redis.set({
+            key: cacheKey,
+            value: payload,
+            ttl: ttlSeconds,
+        });
+    }
+
+    private async trackDbOp(name: string, startTime: number): Promise<void> {
+        await this.dbMonitor.trackQuery(name, Date.now() - startTime);
+    }
+
+    private logAndRethrow(context: string, error: unknown): never {
+        this.logger.error(`${context}:`, error as any);
+        throw error as any;
+    }
+
     /**
      * Verify and validate JWT token
      */
     private async verifyToken(token: string): Promise<TokenPayload> {
         const startTime = Date.now();
-        const cacheKey = `token:${this.hashToken(token)}`;
+        const tokenWithoutBearer = this.stripBearer(token);
+        const cacheKey = this.cacheKeyForToken(tokenWithoutBearer);
         
         try {
-            const isBlacklisted = await this.redis.exists(REDIS_KEYS.TOKEN_BLACKLIST(token));
+            const isBlacklisted = await this.redis.exists(REDIS_KEYS.TOKEN_BLACKLIST(tokenWithoutBearer));
             if (isBlacklisted) {
                 throw new AuthError('Token has been revoked', HttpStatusCode.Unauthorized);
             }
 
             const cachedPayload = await this.redis.get<TokenPayload>(cacheKey);
             if (cachedPayload && this.isTokenValid(cachedPayload)) {
-                await this.dbMonitor.trackQuery('verifyToken_cache_hit', Date.now() - startTime);
+                await this.trackDbOp('verifyToken_cache_hit', startTime);
                 return cachedPayload;
             }
 
-            const tokenWithoutBearer = token.replace('Bearer ', '');
             const decoded = await this.app.jwt.verify(tokenWithoutBearer) as TokenPayload;
             
             if (this.isTokenValid(decoded)) {
-                await this.redis.set({
-                    key: cacheKey,
-                    value: decoded,
-                    ttl: 300 // 5 minutes cache
-                });
+                await this.cacheTokenPayload(cacheKey, decoded);
             }
 
-            await this.dbMonitor.trackQuery('verifyToken', Date.now() - startTime);
+            await this.trackDbOp('verifyToken', startTime);
             return decoded;
         } catch (error: any) {
             this.logger.error('Token verification error:', error as any);
@@ -149,7 +175,6 @@ class AuthorizationService {
 
         const now = Date.now();
         if (now - attempts.lastAttempt > SECURITY_CONFIG.REFRESH_ATTEMPT_WINDOW) {
-            // Reset counter if window has passed
             await this.redis.set({
                 key,
                 value: { count: 1, lastAttempt: now },
@@ -162,7 +187,6 @@ class AuthorizationService {
             return false;
         }
 
-        // Increment counter
         await this.redis.set({
             key,
             value: { count: attempts.count + 1, lastAttempt: now },
@@ -178,18 +202,15 @@ class AuthorizationService {
         const startTime = Date.now();
         
         try {
-            // Get the refresh token before deleting it so we can blacklist it
             const refreshToken = await this.getRefreshToken(id);
             
-            // Delete from Redis
             await this.redis.delete(REDIS_KEYS.REFRESH_TOKEN(id));
             
-            // Blacklist the token to prevent reuse
             if (refreshToken) {
                 await this.blacklistToken(refreshToken);
             }
             
-            await this.dbMonitor.trackQuery('revokeRefreshToken', Date.now() - startTime);
+            await this.trackDbOp('revokeRefreshToken', startTime);
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token revocation error:', error as any);
@@ -204,7 +225,6 @@ class AuthorizationService {
         const startTime = Date.now();
         
         try {
-            // Get the refresh token before deleting it so we can blacklist it
             const refreshToken = await this.getRefreshToken(userId);
             
             await Promise.all([
@@ -212,12 +232,11 @@ class AuthorizationService {
                 this.redis.delete(REDIS_KEYS.USER_CACHE(userId))
             ]);
             
-            // Blacklist the refresh token to prevent reuse
             if (refreshToken) {
                 await this.blacklistToken(refreshToken);
             }
             
-            await this.dbMonitor.trackQuery('forceLogout', Date.now() - startTime);
+            await this.trackDbOp('forceLogout', startTime);
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Force logout error:', error as any);
@@ -235,7 +254,7 @@ class AuthorizationService {
             if (!refreshToken) {
                 throw new AuthError('Refresh token is required', HttpStatusCode.BadRequest);
             }
-            const refreshTokenWithoutBearer = refreshToken.replace('Bearer ', '');
+            const refreshTokenWithoutBearer = this.stripBearer(refreshToken);
 
             const decoded = await this.app.jwt.verify(refreshTokenWithoutBearer) as TokenPayload;
             
@@ -246,17 +265,15 @@ class AuthorizationService {
 
             const storedRefreshToken = await this.getRefreshToken(decoded.id);
             if (!storedRefreshToken || storedRefreshToken !== refreshTokenWithoutBearer) {
-                // Force logout user if refresh token is invalid
                 await this.forceLogout(decoded.id);
                 throw new AuthError('Invalid refresh token. User has been logged out.', HttpStatusCode.Unauthorized);
             }
 
             const newAccessToken = await this.app.jwt.sign(decoded, { expiresIn: TOKEN_TTL.ACCESS });
 
-            // Blacklist the old refresh token to prevent reuse
             await this.blacklistToken(refreshToken);
 
-            await this.dbMonitor.trackQuery('refreshToken', Date.now() - startTime);
+            await this.trackDbOp('refreshToken', startTime);
             
             return {
                 accessToken: `Bearer ${newAccessToken}`
@@ -298,21 +315,19 @@ class AuthorizationService {
         try {
             const tokens = await this.generateTokenPair(payload);
             
-            // Store refresh token
             await this.redis.set({
                 key: REDIS_KEYS.REFRESH_TOKEN(payload.id),
-                value: tokens.refreshToken,
+                value: this.stripBearer(tokens.refreshToken),
                 ttl: 7 * 24 * 60 * 60
             });
 
-            // Initialize user cache for session validation
             await this.redis.set({
                 key: REDIS_KEYS.USER_CACHE(payload.id),
                 value: payload.id,
                 ttl: 7 * 24 * 60 * 60 
             });
 
-            await this.dbMonitor.trackQuery('generateLoginToken', Date.now() - startTime);
+            await this.trackDbOp('generateLoginToken', startTime);
             return tokens;
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
@@ -324,13 +339,13 @@ class AuthorizationService {
     /**
      * Generate single token with custom TTL
      */
-    async generateToken(payload: TokenPayload, ttl: string = TOKEN_TTL.DEFAULT): Promise<string> {
+    async generateToken(payload: any, ttl: string = TOKEN_TTL.DEFAULT): Promise<string> {
         const startTime = Date.now();
         
         try {
             const token = await this.app.jwt.sign(payload, { expiresIn: ttl });
-            await this.dbMonitor.trackQuery('generateToken', Date.now() - startTime);
-            return `Bearer ${token}`;
+            await this.trackDbOp('generateToken', startTime);
+            return token;
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token generation error:', error as any);
@@ -351,7 +366,6 @@ class AuthorizationService {
 
             const { id: decodedId, email, userType, schoolId, role } = await this.verifyToken(token);
 
-            // Check user cache for performance
             const cachedUserId = await this.redis.get<string>(REDIS_KEYS.USER_CACHE(decodedId));
             if (!cachedUserId) {
                 throw new AuthError('User session expired', HttpStatusCode.Unauthorized);
@@ -361,7 +375,7 @@ class AuthorizationService {
                 throw new AuthError('Invalid user session', HttpStatusCode.Unauthorized);
             }
 
-            await this.dbMonitor.trackQuery('authorizeUser', Date.now() - startTime);
+            await this.trackDbOp('authorizeUser', startTime);
             return { 
                 status: true, 
                 token, 
@@ -387,7 +401,7 @@ class AuthorizationService {
      */
     async isTokenExpired(token: string): Promise<boolean> {
         try {
-            const tokenWithoutBearer = token.replace('Bearer ', '');
+            const tokenWithoutBearer = this.stripBearer(token);
             await this.app.jwt.verify(tokenWithoutBearer);
             return false;
         } catch (error: any) {
@@ -400,9 +414,9 @@ class AuthorizationService {
      */
     async validateRefreshToken(refreshToken: string): Promise<boolean> {
         try {
-            const decoded = await this.app.jwt.verify(refreshToken) as TokenPayload;
+            const decoded = await this.app.jwt.verify(this.stripBearer(refreshToken)) as TokenPayload;
             const storedRefreshToken = await this.getRefreshToken(decoded.id);
-            return storedRefreshToken === refreshToken;
+            return storedRefreshToken === this.stripBearer(refreshToken);
         } catch (error: any) {
             return false;
         }
@@ -422,7 +436,7 @@ class AuthorizationService {
     async blacklistToken(token: string): Promise<void> {
         try {
             await this.redis.set({
-                key: REDIS_KEYS.TOKEN_BLACKLIST(token.replace('Bearer ', '')),
+                key: REDIS_KEYS.TOKEN_BLACKLIST(this.stripBearer(token)),
                 value: 'revoked',
                 ttl: 24 * 60 * 60 // 24 hours
             });
@@ -437,7 +451,7 @@ class AuthorizationService {
      */
     async isTokenBlacklisted(token: string): Promise<boolean> {
         try {
-            return await this.redis.exists(REDIS_KEYS.TOKEN_BLACKLIST(token));
+            return await this.redis.exists(REDIS_KEYS.TOKEN_BLACKLIST(this.stripBearer(token)));
         } catch (error: any) {
             this.logger.error('Token blacklist check error:', error as any);
             return false; // Fail safe - assume not blacklisted if check fails
@@ -464,18 +478,15 @@ class AuthorizationService {
         const startTime = Date.now();
         
         try {
-            // Blacklist access token if provided
             if (accessToken) {
                 await this.revokeAccessToken(accessToken);
             }
             
-            // Revoke refresh token (this will also blacklist it)
             await this.revokeRefreshToken(userId);
             
-            // Clear user cache
             await this.redis.delete(REDIS_KEYS.USER_CACHE(userId));
             
-            await this.dbMonitor.trackQuery('revokeAllTokens', Date.now() - startTime);
+            await this.trackDbOp('revokeAllTokens', startTime);
         } catch (error: any) {
             await this.dbMonitor.trackError(error);
             this.logger.error('Token revocation error:', error as any);
