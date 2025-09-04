@@ -55,7 +55,12 @@ class ForgotPasswordController {
             }
 
         } catch (error) {
-            this.app.log.error('Forgot password initiation error:', error);
+            const message = 'Forgot password initiation error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return reply.status(HttpStatusCode.InternalServerError).send({
                 status: false,
                 message: "Failed to initiate password reset",
@@ -84,7 +89,12 @@ class ForgotPasswordController {
             }
 
         } catch (error) {
-            this.app.log.error('OTP verification error:', error);
+            const message = 'OTP verification error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return reply.status(HttpStatusCode.InternalServerError).send({
                 status: false,
                 message: "Failed to verify OTP",
@@ -118,7 +128,12 @@ class ForgotPasswordController {
             }
 
         } catch (error) {
-            this.app.log.error('Password reset error:', error);
+            const message = 'Password reset error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return reply.status(HttpStatusCode.InternalServerError).send({
                 status: false,
                 message: "Failed to reset password",
@@ -157,7 +172,12 @@ class ForgotPasswordController {
             }
 
         } catch (error) {
-            this.app.log.error('Password change error:', error);
+            const message = 'Password change error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return reply.status(HttpStatusCode.InternalServerError).send({
                 status: false,
                 message: "Failed to change password",

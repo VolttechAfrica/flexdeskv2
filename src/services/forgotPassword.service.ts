@@ -114,7 +114,12 @@ class ForgotPasswordService {
             return this.createSuccessResponse(RESPONSE_MESSAGES.OTP_SENT, { email, expiresIn: SECURITY_CONFIG.OTP_EXPIRY});
 
         } catch (error) {
-            this.app.log.error('Forgot password initiation error:', error);
+            const message = 'Forgot password initiation error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return this.createErrorResponse(error);
         }
     }
@@ -145,8 +150,12 @@ class ForgotPasswordService {
             return this.createSuccessResponse("OTP verified successfully", { email, resetToken });
 
         } catch (error) {
-            console.log('error', error);
-            this.app.log.error('OTP verification error:', error);
+            const message = 'OTP verification error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return this.createErrorResponse(error);
         }
     }
@@ -185,7 +194,12 @@ class ForgotPasswordService {
             return this.createSuccessResponse(RESPONSE_MESSAGES.PASSWORD_RESET_SUCCESS);
 
         } catch (error) {
-            this.app.log.error('Password reset error:', error);
+            const message = 'Password reset error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return this.createErrorResponse(error);
         }
     }
@@ -228,7 +242,12 @@ class ForgotPasswordService {
             return this.createSuccessResponse(RESPONSE_MESSAGES.PASSWORD_CHANGE_SUCCESS);
 
         } catch (error) {
-            this.app.log.error('Password change error:', error);
+            const message = 'Password change error';
+            if (error instanceof Error) {
+                this.app.log.error(error, message);
+            } else {
+                this.app.log.error({ error }, message);
+            }
             return this.createErrorResponse(error);
         }
     }
