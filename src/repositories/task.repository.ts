@@ -143,23 +143,27 @@ class TaskRepository extends BaseRepository {
 
         // If tag is 'Result upload' and members are provided, create subtasks
         if (data.tag === 'Result upload' && data.members && data.members.length > 0 && classes.length > 0) {
-          // Create subtasks for each class, class arm, and subject combination
-          const subtasks = [];
+          // Prepare subtask data for bulk creation
+          const subtaskData = [];
           for (const classData of classes) {
             for (const classArm of classData.classArms) {
               for (const subject of classData.subjects) {
                 const subtaskName = `${data.name} - ${classData.name} ${classArm.name} ${subject.name}`;
-                const subtask = await tx.subTask.create({
-                  data: {
-                    name: subtaskName,
-                    taskId: createTask.id,
-                    notes: `Upload result for ${classData.name} ${classArm.name} ${subject.name}`,
-                    tagTo: `${classData.id}_${classArm.id}_${subject.id}`,
-                  },
+                subtaskData.push({
+                  name: subtaskName,
+                  taskId: createTask.id,
+                  notes: `Upload result for ${classData.name} ${classArm.name} ${subject.name}`,
+                  tagTo: `${classData.id}_${classArm.id}_${subject.id}`,
                 });
-                subtasks.push(subtask);
               }
             }
+          }
+          
+          // Create all subtasks in a single operation
+          if (subtaskData.length > 0) {
+            await tx.subTask.createMany({
+              data: subtaskData,
+            });
           }
         }
 
