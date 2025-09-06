@@ -148,7 +148,7 @@ export const createAuthRateLimit = (redis: RedisService) => {
   
   return rateLimiter.createRateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 5,
+    maxRequests: 10,
     keyGenerator: (request) => `auth_rate_limit:${request.ip}`,
     message: 'Too many authentication attempts, please try again later',
     metricsPrefix: 'auth'
@@ -172,7 +172,7 @@ export const createStrictRateLimit = (redis: RedisService) => {
   
   return rateLimiter.createRateLimit({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10,
+    maxRequests: 20,
     keyGenerator: (request) => `strict_rate_limit:${request.ip}`,
     message: 'Rate limit exceeded, please slow down',
     metricsPrefix: 'strict'

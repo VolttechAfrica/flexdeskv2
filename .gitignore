@@ -13,3 +13,5 @@ terraform/.terraform
 *.terraform
 .terraform
 env.example
+Dockerfile.backup
+.cursor

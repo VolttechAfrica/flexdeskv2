@@ -45,7 +45,7 @@ async function forgotPasswordRoutes(app: FastifyInstance) {
                 }
             }
         },
-        //preHandler: [app.authRateLimit],
+        preHandler: [app.authRateLimit],
         handler: forgotPasswordHandler.initiateForgotPassword.bind(forgotPasswordHandler)
     });
 
@@ -97,7 +97,7 @@ async function forgotPasswordRoutes(app: FastifyInstance) {
                 }
             }
         },
-       // preHandler: [app.authRateLimit],
+       preHandler: [app.authRateLimit],
         handler: forgotPasswordHandler.verifyOTP.bind(forgotPasswordHandler)
     });
 
@@ -108,7 +108,7 @@ async function forgotPasswordRoutes(app: FastifyInstance) {
         schema: {
             body: {
                 type: 'object',
-                required: ['email', 'otp', 'newPassword', 'confirmPassword'],
+                required: ['email', 'resetToken', 'newPassword', 'confirmPassword'],
                 properties: {
                     email: { 
                         type: 'string', 

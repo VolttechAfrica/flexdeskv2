@@ -17,7 +17,7 @@ async function authRoutes(app: FastifyInstance){
                 required: ['email', 'password'],
                 properties: {
                     email: { type: 'string', format: 'email' },
-                    password: { type: 'string', minLength: 1 }
+                    password: { type: 'string', minLength: 8 }
                 }
             }
         },

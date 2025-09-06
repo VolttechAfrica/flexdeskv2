@@ -49,10 +49,10 @@ const passwordChangeConfirmation = `<!DOCTYPE html>
                     </tr>
                     <tr>
                         <td style="padding: 0 30px;">
-                            <h2 style="color: #2558bb; font-size: 20px; margin-bottom: 20px; text-align: center;">Password Changed Successfully</h2>
-                            <p style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">Hi {user_name},</p>
-                            <p style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">This email confirms that your flextest Admin account password has been successfully changed. Your account is now secured with the new password you've set.</p>
-                            <p style="font-size: 14px; line-height: 1.5; margin-bottom: 20px;">If you did not make this change, please contact our support team immediately.</p>
+                            <h2 style="color: #2558bb; font-size: 20px; margin-bottom: 20px; text-align: left;">Password Changed Successfully</h2>
+                            <p style="font-size: 15px; line-height: 1.5; margin-bottom: 20px;">Hi {user_name},</p>
+                            <p style="font-size: 15px; line-height: 1.5; margin-bottom: 20px;">This email confirms that your flexdesk account password has been successfully changed. Your account is now secured with the new password you've set.</p>
+                            <p style="font-size: 15px; line-height: 1.5; margin-bottom: 20px;">If you did not make this change, please contact our support team immediately.</p>
                         </td>
                     </tr>
                     <tr>
@@ -63,7 +63,7 @@ const passwordChangeConfirmation = `<!DOCTYPE html>
                                 <li style="margin-bottom: 5px;">✓ Enable two-factor authentication when available</li>
                                 <li style="margin-bottom: 5px;">✓ Avoid using public computers to access your account</li>
                             </ul>
-                            <p style="margin-bottom: 10px;">Need Help? <a href="mailto:support@volttechafrica.com" style="color: #2558bb; text-decoration: none;">Contact Support</a></p>
+                            <p style="margin-bottom: 10px;">Need Help? <a href="https://flex.sch.ng/support" style="color: #2558bb; text-decoration: none;">Contact Support</a></p>
                             <p style="margin-bottom: 10px;">Follow us on:</p>
                             <p>
                                 <a href="https://facebook.com/VolttechAfrica" style="text-decoration: none;"><img src="https://cdn-icons-png.flaticon.com/256/124/124010.png" alt="Facebook" width="24" style="margin: 0 8px;"></a>
