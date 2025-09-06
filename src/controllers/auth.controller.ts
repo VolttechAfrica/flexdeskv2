@@ -51,17 +51,6 @@ class AuthController {
         );
       }
 
-      // Validate password strength
-      const passwordValidation = validatePassword(sanitizedPassword);
-      if (!passwordValidation.isValid) {
-        throw new ValidationError(
-          `Password validation failed: ${passwordValidation.errors.join(', ')}`,
-          "password",
-          null,
-          HttpStatusCode.BadRequest,
-          request.id
-        );
-      }
       
       const loginData = await this.authService.login({ 
         email: sanitizedEmail, 

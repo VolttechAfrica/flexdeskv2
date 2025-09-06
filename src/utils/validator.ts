@@ -48,7 +48,7 @@ export function validatePassword(password: string): { isValid: boolean; errors: 
   }
   
   // Check for common weak patterns
-  const commonPasswords = ['password', '123456', 'qwerty', 'abc123', 'password123'];
+  const commonPasswords = ['password', '123456', 'qwerty', 'abc123', 'password123', 'admin', 'admin123', 'admin123456', 'admin123456789', 'admin1234567890', '123456789', '1234567890', 'love', 'love123', 'love123456', 'love123456789', 'love1234567890', 'user', 'user123', 'user123456', 'user123456789', 'user1234567890', 'guest', 'guest123', 'guest123456', 'guest123456789', 'guest1234567890', 'test', 'test123', 'test123456', 'test123456789', 'test1234567890', 'demo', 'demo123', 'demo123456', 'demo123456789', 'demo1234567890', 'sample', 'sample123', 'sample123456', 'sample123456789', 'sample1234567890', 'example', 'example123', 'example123456', 'example123456789', 'example1234567890'];
   if (commonPasswords.some(common => password.toLowerCase().includes(common))) {
     errors.push('Password contains common patterns and is not secure');
   }

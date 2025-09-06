@@ -618,6 +618,36 @@ class UserRepositories extends BaseRepository {
       )
     );
   }
+  async updateUserPassword(userId: string, password: string, email: string): Promise<boolean> {
+    try {
+      const loginRecord = await this.prisma.login.findFirst({
+        where: {
+          OR: [
+            { staffId: userId },
+            { parentId: userId },
+            { studentId: userId }
+          ]
+        }
+      });
+
+      if (!loginRecord) {
+        return false; 
+      }
+      await this.prisma.login.update({
+        where: { id: loginRecord.id },
+        data: { password },
+      });
+      await this.invalidateCache(`user:info:${userId}`);
+      await this.invalidateCache(`user:profile:${userId}`);
+      await this.invalidateCache(`user:email:${email}`);
+      await this.invalidateCache(`student:email:${email}`);
+      await this.invalidateCache(`parent:email:${email}`);
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 export const createUserRepository = (fastify: FastifyInstance) => {

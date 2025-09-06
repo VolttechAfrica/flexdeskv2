@@ -7,16 +7,16 @@ import RedisService from "./redis.service.js";
 import { validateEmail } from "../utils/validator.js";
 import forgotPasswordEmail from "../utils/emailboilerplate/forgotpassword.js";
 import passwordChangeConfirmation from "../utils/emailboilerplate/passwordchangeconfirmation.js";
-import crypto from "crypto";
 import AuthorizationService from "./authorization.service.js";
+import { validatePassword } from "../utils/validator.js";
 
 // Security constants
 const SECURITY_CONFIG = {
     OTP_LENGTH: 6,
     OTP_EXPIRY: 10 * 60, // 10 minutes in seconds
     MAX_ATTEMPTS: 3,
-    ATTEMPT_WINDOW: 1 * 60, //15 * 60, // 15 minutes in seconds
-    RESET_TOKEN_EXPIRY: 10 * 60, // 10 minutes in seconds
+    ATTEMPT_WINDOW: 15 * 60, //15 * 60, // 15 minutes in seconds
+    RESET_TOKEN_EXPIRY: 15 * 60, // 15 minutes in seconds
     PASSWORD_MIN_LENGTH: 8,
     PASSWORD_MAX_LENGTH: 128,
 } as const;
@@ -184,7 +184,7 @@ class ForgotPasswordService {
 
             const hashedPassword = await this.hashPassword(newPassword);
 
-            await this.updateUserPassword(user.id, hashedPassword);
+            await this.updateUserPassword(user.id, hashedPassword, email);
 
             await this.clearOTP(email);
             await this.clearResetToken(email);
@@ -233,7 +233,7 @@ class ForgotPasswordService {
 
             const hashedPassword = await this.hashPassword(newPassword);
 
-            await this.updateUserPassword(userId, hashedPassword);
+            await this.updateUserPassword(userId, hashedPassword, user.email);
 
             await this.sendPasswordChangeConfirmation(user.email, user.firstName || 'User');
 
@@ -271,8 +271,8 @@ class ForgotPasswordService {
     private async storeResetToken(email: string, token: string): Promise<void> {
         const tokenKey = REDIS_KEYS.RESET_TOKEN(token);
         const emailKey = REDIS_KEYS.RESET_TOKEN_BY_EMAIL(email);
-        await this.redisService.set({ key: tokenKey, value: email, ttl: SECURITY_CONFIG.RESET_TOKEN_EXPIRY });
-        await this.redisService.set({ key: emailKey, value: token, ttl: SECURITY_CONFIG.RESET_TOKEN_EXPIRY });
+        await this.redisService.set({ key: tokenKey, value: token, ttl: SECURITY_CONFIG.RESET_TOKEN_EXPIRY });
+        await this.redisService.set({ key: emailKey, value: email, ttl: SECURITY_CONFIG.RESET_TOKEN_EXPIRY });
     }
 
     private async verifyStoredOTP(email: string, otp: string): Promise<boolean> {
@@ -345,9 +345,9 @@ class ForgotPasswordService {
     }
 
     private validatePasswordStrength(password: string): void {
-        if (password.length < SECURITY_CONFIG.PASSWORD_MIN_LENGTH || 
-            password.length > SECURITY_CONFIG.PASSWORD_MAX_LENGTH) {
-            throw new UserError(RESPONSE_MESSAGES.INVALID_PASSWORD, HttpStatusCode.BadRequest);
+        const { isValid, errors } = validatePassword(password);
+        if (!isValid) {
+            throw new UserError(`Password validation failed: ${errors.join(', ')}`, HttpStatusCode.BadRequest);
         }
     }
 
@@ -371,8 +371,8 @@ class ForgotPasswordService {
         return await this.app.bcrypt.hash(password);
     }
 
-    private async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
-        await this.authRepositories.updatePassword(userId, hashedPassword);
+    private async updateUserPassword(userId: string, hashedPassword: string, email: string): Promise<void> {
+        await this.authRepositories.updateUserPassword(userId, hashedPassword, email);
     }
 
     private async sendOTPEmail(email: string, userName: string, otp: string): Promise<void> {
