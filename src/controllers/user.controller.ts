@@ -46,20 +46,30 @@ class UserController {
         }
     }
 
-    async deleteFirstTimeLogin(request: FastifyRequest, reply: FastifyReply) {
+    async getUserInfo(request: FastifyRequest, reply: FastifyReply) {
         try {
             if (!request.user) throw new UserError(responseMessage.Unauthorized.message, HttpStatusCode.Unauthorized);
-            
-            const result = await this.userService.deleteFirstTimeLogin(request.user.id);
-            
-            return reply.status(HttpStatusCode.Ok).send({
-                ...result,
-                token: request.user.token
-            });
-        } catch (error: any) {
+
+            const params = (request as any).params || {};
+            const paramUserId = params.userId as string | undefined;
+            const authUserId = (request.user as any)?.id as string | undefined;
+            const userId = paramUserId || authUserId;
+            if (!userId) {
+                return reply.code(HttpStatusCode.BadRequest).send({
+                    status: false,
+                    message: "userId is required"
+                });
+            }
+
+            const result = await this.userService.getUserInfo(userId);
+            return reply.code(HttpStatusCode.Ok).send(result);
+        }
+        catch (error: any) {
             throw error;
         }
     }
+
+    
 }
 
 export default UserController;

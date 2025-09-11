@@ -5,6 +5,7 @@ import CacheMonitor from "../utils/cache-monitor.js";
 import { recordMetric, Metrics } from "../config/monitoring.js";
 import RedisService from "../services/redis.service.js";
 
+
 export abstract class BaseRepository {
   protected prisma: PrismaClient;
   protected fastify: FastifyInstance;

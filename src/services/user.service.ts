@@ -3,7 +3,6 @@ import { HttpStatusCode } from "axios";
 import { responseMessage } from "../utils/responseMessage.js";
 import { UserError } from "../utils/errorhandler.js";
 import RedisService from "./redis.service.js";
-import UserResponse from "../utils/loginResponse.js";
 
 interface OnboardingData {
     profile: {
@@ -47,14 +46,17 @@ class UserService {
         this.redis = new RedisService(app);
     }
 
-    async getUserInfo(staffId: string): Promise<any> {
-        try {
-            const user = await this.userRepositories.getUserInfo(staffId);
-            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
-            const userResponse = await UserResponse(user);
-            return userResponse;
+    
 
+    async getUserInfo(userId: string): Promise<any> {
+        try {
+            const user = await this.userRepositories.getUserInfo(userId);
+            if (!user.success) {
+                throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
+            }
+            return this.buildUserReponse(user.data);
         } catch (error: any) {
+            console.log(error);
             this.app.log.error('Error getting user info:', error);
             throw new UserError(responseMessage.FailedToUpdateUser.message, HttpStatusCode.InternalServerError);
         }
@@ -62,57 +64,40 @@ class UserService {
 
     async completeOnboarding(data: OnboardingData, staffId: string): Promise<any> {
         try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
-
-            const email = user?.data?.email as string;
-
-            if(!email) throw new Error("Internal server error, a value is missing")
-
-            // Update profile information
-            if (data.profile) {
-                const profileData = {
-                    ...data.profile,
-                    staffId,
-                    email
-                } as any;
-                await this.userRepositories.updateProfile(profileData);
+            const { user } = await this.getUserInfo(staffId);
+            if (!user) {
+                throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
             }
 
-            // Update qualifications
+            const email = user?.email as string;
+            if (!email) {
+                throw new Error("Internal server error, a value is missing");
+            }
+
+            if (data.profile) {
+                await this.userRepositories.updateProfile(this.buildProfileData(data.profile, staffId, email));
+            }
+
             if (data.qualifications && data.qualifications.length > 0) {
                 for (const qualification of data.qualifications) {
-                    const qualificationData = {
-                        ...qualification,
-                        staffId
-                    };
-                    await this.userRepositories.updateEducationalQualification(qualificationData);
+                    await this.userRepositories.updateEducationalQualification(this.buildQualificationData(qualification, staffId));
                 }
             }
 
-            // Update emergency contact
             if (data.emergencyContact) {
-                const emergencyData = {
-                    ...data.emergencyContact,
-                    staffId
-                };
-                await this.userRepositories.updateEmergencyContact(emergencyData);
+                await this.userRepositories.updateEmergencyContact(this.buildEmergencyContactData(data.emergencyContact, staffId));
             }
 
-            // Update notification settings
             if (data.notifications) {
-                const notificationData = {
-                    ...data.notifications,
-                    userId: staffId
-                };
-                await this.userRepositories.updateNotificationSettings(notificationData);
+                await this.userRepositories.updateNotificationSettings(this.buildNotificationSettingsData(data.notifications, staffId));
             }
+
+            await this.deleteFirstTimeLogin(staffId);
 
             return {
                 status: true,
                 message: "Onboarding completed successfully"
             };
-
         } catch (error: any) {
             this.app.log.error('Error completing onboarding:', error);
             throw new UserError("Failed to complete onboarding", HttpStatusCode.InternalServerError);
@@ -122,11 +107,15 @@ class UserService {
     async updateProfilePicture(profilePicture: string, staffId: string): Promise<any> {
         try {
             const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
+            if (!user) {
+                throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
+            }
 
-            const userData = { profilePicture, staffId };
-            const updateUser = await this.userRepositories.updateProfilePicture(userData);
-            if (!updateUser) throw new UserError("Failed to update profile picture", HttpStatusCode.InternalServerError);
+            const updatePayload = { profilePicture, staffId };
+            const updated = await this.userRepositories.updateProfilePicture(updatePayload);
+            if (!updated) {
+                throw new UserError("Failed to update profile picture", HttpStatusCode.InternalServerError);
+            }
 
             await this.redis.delete(`USER:${staffId}`);
 
@@ -134,30 +123,62 @@ class UserService {
                 status: true,
                 message: "Profile picture updated successfully"
             };
-
         } catch (error: any) {
             this.app.log.error('Error updating profile picture:', error);
             throw new UserError("Failed to update profile picture", HttpStatusCode.InternalServerError);
         }
     }
 
-    async deleteFirstTimeLogin(staffId: string): Promise<any> {
+    async deleteFirstTimeLogin(userId: string): Promise<any> {
         try {
-            const user = await this.getUserInfo(staffId);
-            if (!user) throw new UserError(responseMessage.UserNotFound.message, HttpStatusCode.NotFound);
-
-            const deleteUser = await this.userRepositories.deleteFirstTimeLogin(staffId);
-            if (!deleteUser) throw new UserError("Failed to delete first time login", HttpStatusCode.InternalServerError);
-
-            return {
-                status: true,
-                message: "First time login deleted successfully"
-            };
-
+            const deleted = await this.userRepositories.deleteFirstTimeLogin(userId);
+            if (!deleted) {
+                throw new UserError("Failed to delete first time login", HttpStatusCode.InternalServerError);
+            }
+            return true;
         } catch (error: any) {
             this.app.log.error('Error deleting first time login:', error);
             throw new UserError("Failed to delete first time login", HttpStatusCode.InternalServerError);
         }
+    }
+
+
+    private buildProfileData(profile: OnboardingData['profile'], staffId: string, email: string) {
+        return { ...profile, staffId, email } as any;
+    }
+
+    private buildQualificationData(qualification: NonNullable<OnboardingData['qualifications']>[number], staffId: string) {
+        return { ...qualification, staffId };
+    }
+
+    private buildEmergencyContactData(emergencyContact: NonNullable<OnboardingData['emergencyContact']>, staffId: string) {
+        return { ...emergencyContact, staffId };
+    }
+
+    private buildNotificationSettingsData(notifications: NonNullable<OnboardingData['notifications']>, staffId: string) {
+        return { ...notifications, userId: staffId };
+    }
+
+    private buildUserReponse(user: any) {
+        const userResponse = {
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                otherName: user.otherName,
+                roleId: user.roleId,
+                status: user.status,
+                userType: user?.userType,
+                position: user?.role?.name,
+                profile: user?.profile,
+                assignedClasses: user?.assignedClasses,
+                assignedSubjects: user?.assignedSubjects,
+                school: user?.school
+            }
+        }
+
+        return userResponse;
     }
 }
 

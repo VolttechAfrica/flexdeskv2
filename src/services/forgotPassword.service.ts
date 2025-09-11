@@ -278,8 +278,6 @@ class ForgotPasswordService {
     private async verifyStoredOTP(email: string, otp: string): Promise<boolean> {
         const key = REDIS_KEYS.OTP(email);
         const storedOTP = await this.redisService.get<string>(key);
-        console.log('storedOTP', storedOTP);
-        console.log('otp', otp);
         return Number(storedOTP) === Number(otp);
     }
 
@@ -353,10 +351,10 @@ class ForgotPasswordService {
 
     private async findUserByEmail(email: string): Promise<any> {
         let user = await this.authRepositories.findByEmail(email);
-        if (user) return user;
+        if (user) return user?.data;
 
         user = await this.authRepositories.findParentByEmail(email);
-        return user;
+        return user?.data;
     }
 
     private async getUserWithPassword(userId: string): Promise<any> {

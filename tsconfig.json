@@ -16,7 +16,7 @@
       "@/*": ["*"]
     }
   },
-  "exclude": ["scripts"],
+  "exclude": ["migration"],
   "ts-node": {
     "esm": true,
     "transpileOnly": true

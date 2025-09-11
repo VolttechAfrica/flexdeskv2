@@ -5,7 +5,10 @@ import userRoutes from "./routes/user.route.js";
 import taskRoutes from "./routes/task.routes.js";
 import supportTicketRoutes from "./routes/supportTicket.routes.js";
 import cloudinaryRoutes from "./routes/cloudinary.routes.js";
+import forgotPasswordRoutes from "./routes/forgotPassword.routes.js";
 
+
+import prismaPlugin from "./plugins/prismaPlugin.js";
 import helmet from "@fastify/helmet";
 import cors from "@fastify/cors";
 import fastify, { FastifyPluginAsync } from "fastify";
@@ -20,7 +23,8 @@ import rateLimitPlugin from "./plugins/rateLimitPlugin.js";
 import DatabaseMonitor from "./utils/db-monitor.js";
 import CacheMonitor from "./utils/cache-monitor.js";
 import { PrismaClient } from "@prisma/client";
-import forgotPasswordRoutes from "./routes/forgotPassword.routes.js";
+
+
 
 
 
@@ -62,6 +66,7 @@ export const buildServer = async () => {
   app.register(jwtPlugin);
   app.register(bcryptPlugin);
   app.register(nodemailerPlugin);
+  app.register(prismaPlugin);
   app.register(helmet);
   app.register(cors, {
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://flexdesk-frontend.vercel.app', 'http://192.168.2.38:3000'],

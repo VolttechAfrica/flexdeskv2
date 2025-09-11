@@ -158,6 +158,7 @@ model Staff {
   assignedSubjects         AssignedSubject[]
   userNotificationSettings UserNotificationSettings[]
   emergencyContacts        EmergencyContact[]
+  notifications            Notification[]
 
   @@index([roleId], name: "idx_staff_role")
   @@index([schoolId], name: "idx_staff_school")
@@ -395,6 +396,7 @@ model Student {
   parentId  String?
   parent    Parent?           @relation("ParentChildren", fields: [parentId], references: [id])
   login     Login?            @relation("StudentLogin")
+  notifications Notification[]
 
   @@index([classId], name: "idx_student_class")
   @@index([classArmId], name: "idx_student_class_arm")
@@ -452,6 +454,7 @@ model Parent {
   children       Student[]       @relation("ParentChildren")
   parentLogin    Login?          @relation("ParentLogin")
   firstTimeLogin FirstTimeLogin? @relation("ParentFirstTimeLogin")
+  notifications  Notification[]
 
   @@index([email], name: "idx_parent_email")
   @@index([status], name: "idx_parent_status")
@@ -723,4 +726,25 @@ model EmergencyContact {
   staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@index([staffId], name: "idx_emergency_contact")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  staffId   String?
+  parentId  String?
+  studentId String?
+  title     String   @db.VarChar(100)
+  message   String   @db.VarChar(1000)
+  isRead    Boolean  @default(false)
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff   Staff?   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  parent  Parent?  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([staffId], name: "idx_notification_staff")
+  @@index([parentId], name: "idx_notification_parent")
+  @@index([studentId], name: "idx_notification_student")
 }

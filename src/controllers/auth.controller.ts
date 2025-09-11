@@ -6,8 +6,8 @@ import { AuthError, ValidationError } from "../utils/errorhandler.js";
 import { HttpStatusCode } from "axios";
 import { RegisterRequest } from "@/types/user.js";
 import UserActivityService from "../services/userActivity.service.js";
-import userActivityRepositories from "../repositories/activities.respository.js";
-import { validateEmail, validatePassword, validateName, validateRequest, sanitizeInput } from "../utils/validator.js";
+import { createActivitiesRepository } from "../repositories/activities.respository.js";
+import { validateEmail, validateName, validateRequest, sanitizeInput } from "../utils/validator.js";
 
 class AuthController {
   private authService: AuthService;
@@ -17,7 +17,7 @@ class AuthController {
     this.authService = new AuthService(app, createUserRepository(app));
     this.userActivityService = new UserActivityService(
       app,
-      userActivityRepositories
+      createActivitiesRepository(app)
     );
   }
 
@@ -56,7 +56,7 @@ class AuthController {
         email: sanitizedEmail, 
         password: sanitizedPassword 
       });
-      
+    
       // Log user activity based on detected user type
       const userId = loginData.data.user.id;
       const userTypeDetected = loginData.data.userType;
@@ -67,9 +67,9 @@ class AuthController {
         request.ip,
         request.headers["user-agent"] || ""
       );
-      
       return reply.status(HttpStatusCode.Ok).send(loginData);
     } catch (error: any) {
+      console.log('error', error);
       request.log.error('Login error:', error as any);
       throw error;
     }

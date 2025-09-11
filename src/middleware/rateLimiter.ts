@@ -148,7 +148,7 @@ export const createAuthRateLimit = (redis: RedisService) => {
   
   return rateLimiter.createRateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 10,
+    maxRequests: 20,
     keyGenerator: (request) => `auth_rate_limit:${request.ip}`,
     message: 'Too many authentication attempts, please try again later',
     metricsPrefix: 'auth'
@@ -159,14 +159,19 @@ export const createGeneralRateLimit = (redis: RedisService) => {
   const rateLimiter = new RateLimiter(redis);
   
   return rateLimiter.createRateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 5 * 60 * 1000, // 5 minutes
     maxRequests: 100,
     keyGenerator: (request) => `general_rate_limit:${request.ip}`,
-    message: 'Too many requests, please slow down',
+    message: 'Too many requests, please wait a moment and try again',
     metricsPrefix: 'general'
   });
 };
 
+/**
+ * Strict rate limit for sensitive routes like external/ public routes
+ * @param redis 
+ * @returns 
+ */
 export const createStrictRateLimit = (redis: RedisService) => {
   const rateLimiter = new RateLimiter(redis);
   

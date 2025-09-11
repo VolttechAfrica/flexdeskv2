@@ -10,7 +10,7 @@ import { validateEmail } from "../utils/validator.js";
 import { generateRegistrationNumber } from "../utils/registrationNumber.js";
 import EmailService from "./email.service.js";
 
-// Constants for better maintainability
+
 const USER_STATUSES = {
     ACTIVE: "ACTIVE",
     PENDING: "PENDING"
@@ -52,6 +52,7 @@ class AuthService {
             throw new AuthError(responseMessage.InvalidEmailOrPassword.message, HttpStatusCode.NotFound);
         }
 
+
         this.validateUserStatus(user.status);
         
         const userType = this.determineUserType(user.roleId);
@@ -64,8 +65,7 @@ class AuthService {
         await this.validatePassword(password, loginData.password);
 
         const tokens = await this.generateUserTokens(user, userType);
-        const permissions = this.extractUserPermissions(user);
-        const userResponse = await this.buildUserResponse(user, tokens, userType, permissions);
+        const userResponse = await this.buildUserResponse(user, tokens, userType);
         
         return userResponse;
     }
@@ -114,25 +114,19 @@ class AuthService {
         return await this.authorizationService.generateLoginToken(payload);
     }
 
-    private extractUserPermissions(user: any): string[] {
-        if (!user.role?.RolePermission) return [];
-        
-        return user.role.RolePermission.map((rp: { permission: { action: string } }) => rp.permission.action);
-    }
-
     private async findUserByEmail(email: string): Promise<any> {
         let user = await this.authRepositories.findByEmail(email);
-        if (user) return user;
+        if (user) return user?.data;
 
         user = await this.authRepositories.findParentByEmail(email);
-        return user || null;
+        return user?.data || null;
     }
 
     private async comparePassword(password: string, hash: string): Promise<boolean> {
         return await this.app.bcrypt.compare(password, hash);
     }
 
-    private async buildUserResponse(user: any, tokens: { accessToken: string; refreshToken: string }, userType: UserType, permissions: string[]): Promise<any> {
+    private async buildUserResponse(user: any, tokens: { accessToken: string; refreshToken: string }, userType: UserType): Promise<any> {
         const baseUserData = this.buildBaseUserData(user, userType);
         const enrichedUserData = this.enrichUserDataByType(baseUserData, user, userType);
 
@@ -144,7 +138,6 @@ class AuthService {
                 accessToken: tokens.accessToken,
                 refreshToken: tokens.refreshToken,
                 userType,
-                permissions,
             }
         };
     }
@@ -170,11 +163,7 @@ class AuthService {
                 return {
                     ...baseUserData,
                     role: user.role?.name,
-                    type: user.type,
-                    school: user.school,
-                    profile: user.profile,
-                    assignedClasses: user.assignedClasses,
-                    assignedSubjects: user.assignedSubjects,
+                    type: user.type
                 };
             case USER_TYPES.PARENT:
                 return {

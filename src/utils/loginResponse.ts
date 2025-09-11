@@ -28,12 +28,12 @@ const UserResponse = async (data: any, token?: string) => {
       city: data?.profile?.city,
       lga: data?.profile?.lga,
     },
-    schoolInformation: data?.school,
     staff_class: {
       classId: data?.assignedClasses?.classId,
       classArmId: data?.assignedClasses?.classArmId,
-    },
-    profile: data?.profile,
+      class: data?.assignedClasses?.class,
+      classArm: data?.assignedClasses?.classArm,
+    }
   };
 };
 

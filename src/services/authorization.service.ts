@@ -14,11 +14,12 @@ const TOKEN_TTL = {
     DEFAULT: '15m'
 } as const;
 
-const REDIS_KEYS = {
+export const REDIS_KEYS = {
     REFRESH_TOKEN: (id: string) => `refreshToken:${id}`,
     USER_CACHE: (id: string) => `user:${id}`,
     TOKEN_BLACKLIST: (token: string) => `blacklist:${token}`,
     TOKEN_CACHE: (hashedToken: string) => `token:${hashedToken}`,
+    USER_TYPE: (userId: string) => `userType:${userId}`,
 } as const;
 
 const SECURITY_CONFIG = {
@@ -73,9 +74,6 @@ class AuthorizationService {
         this.logger = app.log;
     }
 
-    // =========================
-    // Private utility helpers
-    // =========================
 
     private stripBearer(token: string): string {
         return token?.startsWith('Bearer ') ? token.slice(7) : token;
@@ -97,10 +95,7 @@ class AuthorizationService {
         await this.dbMonitor.trackQuery(name, Date.now() - startTime);
     }
 
-    private logAndRethrow(context: string, error: unknown): never {
-        this.logger.error(`${context}:`, error as any);
-        throw error as any;
-    }
+   
 
     /**
      * Verify and validate JWT token
@@ -327,6 +322,8 @@ class AuthorizationService {
                 ttl: 7 * 24 * 60 * 60 
             });
 
+            await this.storeUserType(payload.id, payload.userType);
+
             await this.trackDbOp('generateLoginToken', startTime);
             return tokens;
         } catch (error: any) {
@@ -337,7 +334,7 @@ class AuthorizationService {
     }
 
     /**
-     * Generate single token with custom TTL
+     * Generate single token with custom TTL Used for forgot password and reset password
      */
     async generateToken(payload: any, ttl: string = TOKEN_TTL.DEFAULT): Promise<string> {
         const startTime = Date.now();
@@ -358,7 +355,6 @@ class AuthorizationService {
      */
     async authorizeUser(token: string): Promise<AuthResponse> {
         const startTime = Date.now();
-        
         try {
             if (!token) {
                 throw new AuthError('Missing authorization token', HttpStatusCode.Unauthorized);
@@ -492,6 +488,18 @@ class AuthorizationService {
             this.logger.error('Token revocation error:', error as any);
             throw new AuthError('Failed to revoke all tokens', HttpStatusCode.InternalServerError);
         }
+    }
+    /**
+     * Store user type in Redis to easily identify the user type
+     * @param userId 
+     * @param userType 
+     */
+    private async storeUserType(userId: string, userType: string): Promise<void> {
+        await this.redis.set({
+            key: REDIS_KEYS.USER_TYPE(userId),
+            value: userType,
+            ttl: 7 * 24 * 60 * 60
+        });
     }
 
 }

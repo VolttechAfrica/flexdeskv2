@@ -100,24 +100,12 @@ async function userRoutes(app: FastifyInstance) {
         handler: userController.updateProfilePicture.bind(userController),
     });
 
-    // Complete first-time login process
+    // Get user info
     app.route({
-        method: "POST",
+        method: "GET",
         preHandler: [app.authenticate],
-        url: "/complete-onboarding",
-        schema: {
-            response: {
-                200: {
-                    type: "object",
-                    properties: {
-                        status: { type: "boolean" },
-                        message: { type: "string" },
-                        token: { type: "string" }
-                    }
-                }
-            }
-        },
-        handler: userController.deleteFirstTimeLogin.bind(userController),
+        url: "/:userId/info",
+        handler: userController.getUserInfo.bind(userController),
     });
 }
 
